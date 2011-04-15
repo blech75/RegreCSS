@@ -44,7 +44,7 @@ function diffNodes(event) {
 			if (el1_style[css_props[j]] != el2_style[css_props[j]]) {
 
 				// before comparing, pre-process values containing "url()" to remove 
-				// the common parts of the URL
+				// the common parts of the URL. kinda ugly, but works.
 				if (URL_REGEX.test(el1_style[css_props[j]])) {
 					var common_path_parts = returnCommonPathPart(doc1_url, doc2_url);
 					var revised_prop1 = el1_style[css_props[j]].split(common_path_parts[0]).join("");
