@@ -11,8 +11,7 @@
 	<script src="cssdiff.js" type="text/javascript" charset="utf-8"></script>
 
 	<style type="text/css" media="screen">
-		#doc1 P { color: red; font-size: 1.2em; }
-		#doc2 UL { width: 100px; position: relative; }
+		.embedded-doc { width: 600px; height: 200px; }
 	</style>
 
 </head>
@@ -21,29 +20,12 @@
 
 <h1>DOM Node CSS Diff Tool</h1>
 
+<button type="button" id="diff-css" value="">Run CSS Diff</button>
+
 <hr />
 
-<div id="doc1">
-	<h2>this is a test document</h2>
-	<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-	<ul>
-		<li>item 1</li>
-		<li>item 2</li>
-		<li>item 3</li>
-		<li>item 4</li>
-	</ul>	
-</div>
-
-<div id="doc2">
-	<h2>this is a test document</h2>
-	<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-	<ul>
-		<li>item 1</li>
-		<li>item 2</li>
-		<li>item 3</li>
-		<li>item 4</li>
-	</ul>	
-</div>
+<iframe src="doc1.html" id="doc1" class="embedded-doc"></iframe>
+<iframe src="doc2.html" id="doc2" class="embedded-doc"></iframe>
 
 
 
