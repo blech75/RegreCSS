@@ -15,13 +15,11 @@ function diffNodes() {
 
 	// holds a list of all the CSS properties
 	var css_props = null;
+	
+	// holds a list of the CSS props that are different for each node; cleared on each iteration
+	var css_diffs = [];
 
 	for (var i=0; i < doc1_els.length; i++) {
-		// output the node name, id, and class
-		var node_info = doc1_els[i].nodeName + ((doc1_els[i].id != "") ? "#" + doc1_els[i].id : "") + ((doc1_els[i].className != "") ? "." + doc1_els[i].className : "");
-		var path_info = jQuery(doc1_els[i]).parentsUntil('html').map(function () { return this.tagName; }) .get().join(" < ");
-		console.log(node_info + " < " + path_info);
-
 		// get the conputed style for this element
 		var el1_style = doc1.contentDocument.defaultView.getComputedStyle(doc1_els[i]);
 		var el2_style = doc2.contentDocument.defaultView.getComputedStyle(doc2_els[i]);
@@ -30,19 +28,38 @@ function diffNodes() {
 		css_props = css_props || _.toArray(el1_style);
 
 		// iterate over the list of CSS properties
-		_.each(css_props, function(prop){
+		for (var j=0; j < css_props.length; j++) {
 			// bail out if the property matches the ignore regex
-			if (IGNORE_REGEX.test(prop)) return;
+			if (IGNORE_REGEX.test(css_props[j])) { continue; };
 
 			// if the value of the property does not match across documents
-			if (el1_style[prop] != el2_style[prop]) {
-				console.log(" > " + prop + " : " + el1_style[prop] + " vs. " + el2_style[prop]);
+			if (el1_style[css_props[j]] != el2_style[css_props[j]]) {
+				css_diffs.push(" » " + css_props[j] + " : " + el1_style[css_props[j]] + " vs. " + el2_style[css_props[j]]);
 			}
-		});
-		
+		};
+
+		// display diff result for node if there is any
+		if (css_diffs.length > 0) {
+			displayDiffResult(doc1_els[i], css_diffs);
+		}
+
+		// clear diff list for next node
+		css_diffs = [];
 	};
 
 };
+
+
+function displayDiffResult(node, diffs) {
+	var node_info = node.nodeName + 
+		((node.id != "") ? "#" + node.id : "") + 
+		((node.className != "") ? "." + node.className : "");
+
+	var path_info = jQuery(node).parentsUntil('html').map(function () { return this.tagName; }) .get().join(" < ");
+
+	console.log(node_info + " < " + path_info + "\n" + diffs.join("\n"));
+}
+
 
 function loadDoc(event) {
 	// FIXME: this jQuery thing seems to be a lot of work. i must be doing something wrong.
