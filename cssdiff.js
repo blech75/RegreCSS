@@ -1,5 +1,8 @@
 function diffNodes() {
 	// use this regex to ignore certain CSS properties
+	// TODO:
+	//  * confirm this list and/or ignore all vendor prefixes?
+	//  * make this configurable via the UI;
 	var IGNORE_REGEX = /^-(webkit|ms|moz)/;
 
 	// grab the IFRAME IDs
