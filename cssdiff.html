@@ -1,5 +1,5 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
@@ -22,14 +22,31 @@
 <h1>DOM Node CSS Diff Tool</h1>
 <p>This proof-of-concept tool/algorithm will compare the computed styles of two documents' nodes. In other words, the HTML (and therefore the DOM structure) of the compared documents must be identical; the CSS can be different. This is useful when regression testing CSS.</p>
 
-<button type="button" id="diff-css" value="">Run CSS Diff</button>
+<hr />
+
+<div id="doc1-wrapper">
+	<h2>Base Document</h2>
+	<label for="page_url1">Page URL</label>
+	<input type="text" name="page_url1" value="" id="page_url1" />
+	<button type="button" name="load_page1" id="load_page1" value="">Load Page</button>
+	<iframe src="doc1.html" id="doc1" class="embedded-doc"></iframe>
+</div>
 
 <hr />
 
-<iframe src="doc1.html" id="doc1" class="embedded-doc"></iframe>
-<iframe src="doc2.html" id="doc2" class="embedded-doc"></iframe>
+<div id="doc2-wrapper">
+	<h2>Document to Compare</h2>
+	<label for="page_url2">Page URL</label>
+	<input type="text" name="page_url2" value="" id="page_url2" />
+	<button type="button" name="load_page2" id="load_page2" value="">Load Page</button>
+	<iframe src="doc2.html" id="doc2" class="embedded-doc"></iframe>
+</div>
 
+<hr />
 
+<div>
+	<button type="button" id="diff-css" value="">Run CSS Diff</button>
+</div>
 
 </body>
 </html>
