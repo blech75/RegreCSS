@@ -44,7 +44,15 @@ function diffNodes() {
 
 };
 
+function loadDoc(event) {
+	// FIXME: this jQuery thing seems to be a lot of work. i must be doing something wrong.
+	$("#" + event.data.node_id)[0].src = $("#" + event.data.input_id)[0].value;
+};
+
 
 jQuery(document).ready(function($){
 	$('#diff-css').click(diffNodes);	
+
+	$('#doc1_load').bind('click', { input_id: 'doc1_url', node_id: 'doc1' }, loadDoc);
+	$('#doc2_load').bind('click', { input_id: 'doc2_url', node_id: 'doc2' }, loadDoc);
 });
