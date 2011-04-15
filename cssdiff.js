@@ -1,3 +1,7 @@
+// TODO: handle different URL paths for different versions of the page.
+
+
+
 function diffNodes() {
 	// use this regex to ignore certain CSS properties
 	// TODO:
@@ -55,14 +59,13 @@ function displayDiffResult(node, diffs) {
 		((node.id != "") ? "#" + node.id : "") + 
 		((node.className != "") ? "." + node.className : "");
 
-	var path_info = jQuery(node).parentsUntil('html').map(function () { return this.tagName; }) .get().join(" < ");
+	var path_info = jQuery(node).parentsUntil('html').map(function () { return this.tagName; }).get().join(" < ");
 
 	console.log(node_info + " < " + path_info + "\n" + diffs.join("\n"));
 }
 
 
 function loadDoc(event) {
-	// FIXME: this jQuery thing seems to be a lot of work. i must be doing something wrong.
 	$("#" + event.data.node_id)[0].src = $("#" + event.data.input_id)[0].value;
 };
 
