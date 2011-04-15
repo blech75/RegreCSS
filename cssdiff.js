@@ -31,7 +31,7 @@ function diffNodes() {
 			// bail out if the property matches the ignore regex
 			if (IGNORE_REGEX.test(prop)) return;
 
-			// if the property's values do not match
+			// if the value of the property does not match across documents
 			if (el1_style[prop] != el2_style[prop]) {
 				console.log(" > " + prop + " : " + el1_style[prop] + " vs. " + el2_style[prop]);
 			}
