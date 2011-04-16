@@ -1,4 +1,8 @@
-// TODO: handle different URL paths for different versions of the page.
+// KNOWN ISSUE: the computed style is determined when the user clicks 
+// 'Run CSS Diff', which may confusingly report properties of elements which 
+// are animated automatically (on page load) as being different. maybe we 
+// should allow users to specify selectors to ignore and/or the properties to 
+// ignore. need to think about this.
 
 
 function diffNodes(event) {
@@ -79,7 +83,8 @@ function returnCommonPathPart(path1, path2) {
 	var path2_parts = path2.split("/");
 
 	// iterate over the two arrays and compare the elements, breaking where 
-	// they don't match anymore. on exit, 'i' will be the index that doesn't match.
+	// they don't match anymore. on exit, 'i' will be the index that doesn't 
+	// match.
 	var i=2; // ignore the "http://" bit
 	for (; i < path1_parts.length; i++) {
 		if (path1_parts[i] == path2_parts[i]) { continue; }
@@ -102,7 +107,9 @@ function displayDiffResult(node, diffs) {
 		((node.id != "") ? "#" + node.id : "") + 
 		((node.className != "") ? "." + node.className : "");
 
-	var path_info = jQuery(node).parentsUntil('html').map(function () { return this.tagName; }).get().join(" < ");
+	var path_info = jQuery(node).parentsUntil('html').map(function() { 
+		return this.tagName; 
+	}).get().join(" < ");
 
 	console.log(node_info + " < " + path_info + "\n" + diffs.join("\n"));
 };
@@ -112,6 +119,8 @@ function loadDoc(event) {
 	$("#" + event.data.node_id)[0].src = $("#" + event.data.input_id)[0].value;
 };
 
+
+// ---------------------------------------------------------------------------
 
 jQuery(document).ready(function($){
 	$('#diff-css').bind('click', { inputs: ['doc1_url', 'doc2_url'] }, diffNodes);
