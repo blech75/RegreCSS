@@ -10,7 +10,7 @@ function diffNodes(event) {
 	// TODO:
 	//  * confirm this list and/or ignore all vendor prefixes?
 	//  * make this configurable via the UI;
-	var IGNORE_REGEX = /^-(webkit|ms|moz)/;
+	var IGNORE_REGEX = /^-(webkit|ms|moz|o)/;
 	var URL_REGEX = /url\([^)]+\)/;
 
 	var doc1_url = $("#" + event.data.inputs[0])[0].value;
