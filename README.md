@@ -32,4 +32,4 @@ Future Direction
 
 License
 -------
-`cssdiff` is is licensed under the terms of the MIT License, see the included LICENSE file.
+`cssdiff` is licensed under the terms of the MIT License, see the included LICENSE file.
