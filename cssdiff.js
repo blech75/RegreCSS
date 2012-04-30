@@ -6,6 +6,8 @@
 
 
 function diffNodes(event) {
+	var TIME_START = new Date();
+
 	// use this regex to ignore certain CSS properties
 	// TODO:
 	//  * confirm this list and/or ignore all vendor prefixes?
@@ -23,6 +25,8 @@ function diffNodes(event) {
 	// grab the IFRAME IDs
 	var doc1 = document.getElementById('doc1');
 	var doc2 = document.getElementById('doc2');
+	var node_tally = 0;
+	var node_tally_skipped = 0;
 
 	// grab all of the elements in the IFRAME's DOM
 	var doc1_els = _.toArray(doc1.contentDocument.body.getElementsByTagName('*'));
@@ -44,6 +48,7 @@ function diffNodes(event) {
 		// check to see if we're comparing apples to apples, or even if the second apple exists!
 		if (doc1_els[i] && !doc2_els[i]) {
 			console.log("ERROR: DOM node from doc1 (" + doc1_els[i].tagName + ") does not exist in doc2. Ignoring.");
+			node_tally_skipped++;
 			continue;
 		}
 
@@ -85,6 +90,9 @@ function diffNodes(event) {
 					" : " + el1_style[css_props[j]] + 
 					" vs. " + el2_style[css_props[j]]
 				);
+
+				// increment the # of nodes that differ, for reporting later
+				node_tally++;
 			}
 
 		}; // END: for loop over CSS props
@@ -98,6 +106,9 @@ function diffNodes(event) {
 		css_diffs = [];
 	};
 
+	var TIME_END = new Date();
+
+	console.log("CSS Diff completed in " + (TIME_END - TIME_START) + "ms. " + node_tally + " node(s) differ, " + node_tally_skipped + " node(s) skipped.");
 };
 
 
