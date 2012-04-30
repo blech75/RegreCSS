@@ -15,6 +15,10 @@ function diffNodes(event) {
 
 	var doc1_url = $("#" + event.data.inputs[0])[0].value;
 	var doc2_url = $("#" + event.data.inputs[1])[0].value;
+	if ( !(_.contains([doc1.tagName.toLowerCase(), doc2.tagName.toLowerCase()], 'iframe')) ) {
+		console.log('ERROR: nodes must both be IFRAMEs.')
+		return;
+	}
 
 	// grab the IFRAME IDs
 	var doc1 = document.getElementById('doc1');
@@ -24,6 +28,11 @@ function diffNodes(event) {
 	var doc1_els = _.toArray(doc1.contentDocument.body.getElementsByTagName('*'));
 	var doc2_els = _.toArray(doc2.contentDocument.body.getElementsByTagName('*'));
 
+	// check to see if both documents are equal, tag-/DOM-wise
+	if (doc1_els.length !== doc2_els.length) {
+		console.log("WARNING: DOM trees differ between documents! (doc1: " + doc1_els.length + ", doc2: " + doc2_els.length + ") Proceed with caution.");
+	}
+
 	// holds a list of all the CSS properties
 	var css_props = null;
 	
@@ -32,6 +41,12 @@ function diffNodes(event) {
 
 	// loop over all of the elements in the first doc (and hope they're the same in the second doc!)
 	for (var i=0; i < doc1_els.length; i++) {
+		// check to see if we're comparing apples to apples, or even if the second apple exists!
+		if (doc1_els[i] && !doc2_els[i]) {
+			console.log("ERROR: DOM node from doc1 (" + doc1_els[i].tagName + ") does not exist in doc2. Ignoring.");
+			continue;
+		}
+
 		// get the conputed style for this element
 		var el1_style = doc1.contentDocument.defaultView.getComputedStyle(doc1_els[i]);
 		var el2_style = doc2.contentDocument.defaultView.getComputedStyle(doc2_els[i]);
