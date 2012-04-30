@@ -14,6 +14,7 @@ Notes
  * All of the output is currently done via `console.log()`, so make sure you're got one of those in your browser. An actual in-browser UI is coming Real Soon Now (see above).
  * The HTML and DOM structure of the pages you're comparing should be identical down to the content. The use case doesn't really make sense if they're not. Think about it.
  * Animated JS elements that start on page load present a challenge and are not accounted for. See KNOWN ISSUES in `cssdiff.js`.
+ * Vendor prefixes are being ignored now; it'll be an easily configurable option in the future.
 
 
 How to Use
