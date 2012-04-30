@@ -5,7 +5,9 @@
 // ignore. need to think about this.
 
 
-function diffNodes(event) {
+
+// diffNodes takes two arguments, which are IFRAME node references
+function diffNodes(doc1, doc2) {
 	var TIME_START = new Date();
 
 	// use this regex to ignore certain CSS properties
@@ -15,16 +17,15 @@ function diffNodes(event) {
 	var IGNORE_REGEX = /^-(webkit|ms|moz|o)/;
 	var URL_REGEX = /url\([^)]+\)/;
 
-	var doc1_url = $("#" + event.data.inputs[0])[0].value;
-	var doc2_url = $("#" + event.data.inputs[1])[0].value;
+	// pull out the URLs of the documents for later use
+	var doc1_url = doc1.baseURI;
+	var doc2_url = doc2.baseURI;
+
 	if ( !(_.contains([doc1.tagName.toLowerCase(), doc2.tagName.toLowerCase()], 'iframe')) ) {
 		console.log('ERROR: nodes must both be IFRAMEs.')
 		return;
 	}
 
-	// grab the IFRAME IDs
-	var doc1 = document.getElementById('doc1');
-	var doc2 = document.getElementById('doc2');
 	var node_tally = 0;
 	var node_tally_skipped = 0;
 
@@ -109,6 +110,9 @@ function diffNodes(event) {
 	var TIME_END = new Date();
 
 	console.log("CSS Diff completed in " + (TIME_END - TIME_START) + "ms. " + node_tally + " node(s) differ, " + node_tally_skipped + " node(s) skipped.");
+
+	// signal we're done so phantomjs can exit cleanly
+	CSSDiff.done = new Date();
 };
 
 
@@ -149,16 +153,146 @@ function displayDiffResult(node, diffs) {
 };
 
 
-function loadDoc(event) {
-	$("#" + event.data.node_id)[0].src = $("#" + event.data.input_id)[0].value;
+// loads URL into IFRAME
+function loadDoc(url, iframe_el) {
+	iframe_el.src = url;
 };
+
+
+// allow for URLs to be passed in via query string.
+// automatically load and run the diff once URLs load
+function loadDocsFromQueryString() {
+	// bail if the query string is missing, or just contains "?"
+	if (window.location.search.length <= 1) { return; }
+
+	// remove the ? and turn into an array in one fell swoop
+	var query_params = window.location.search.substring(1).split("&");
+
+	if (query_params.length >= 1 && query_params[0] != "") {
+		var doc1, doc2, url1, url2, nv_pair;
+
+		// this may seem stupid, but it's less code and less looping.
+		for (var i = 0; i < query_params.length; i++) {
+			nv_pair = query_params[i].split("=");
+
+			if ( (nv_pair.length != 2) || (nv_pair[1] && (nv_pair[1] == "")) ) {
+				console.log("confused parsing query param " + i + ": " + nv_pair.join());
+				continue;
+			}
+
+			// set vars based on query string
+			if ( !url1 && (nv_pair[0] == 'url1') ) {
+				url1 = decodeURIComponent(nv_pair[1]);
+			} else if ( !url2 && (nv_pair[0] == 'url2')  ) {
+				url2 = decodeURIComponent(nv_pair[1]);
+			} else {
+				console.log(nv_pair[0], nv_pair[1]);
+			}
+			if (url1 && url2) { break; }
+		} // END: for loop
+
+		CSSDiff.last_diff_started = new Date();
+
+		// we're not validating URLs beyond string length; not worth it.
+		if (url1 && url1.length > 0) {
+			document.getElementById("doc1_url").value = url1;
+			// console.log("Loading URL1: " + url1);
+			loadDoc(url1, CSSDiff.doc1);
+		}
+		if (url2 && url2.length > 0) {
+			document.getElementById("doc2_url").value = url2;
+			// console.log("Loading URL2: " + url2);
+			loadDoc(url2, CSSDiff.doc2);
+		}
+
+	};		
+
+}
+
+
+function loadDocClickHandler(event) {
+	loadDoc(document.getElementById(event.data.node_id + "_url").value, document.getElementById(event.data.node_id));
+}
+
+
+function iframeLoadHandler(event) {
+	CSSDiff[event.srcElement.id + '_loaded'] = new Date();
+//	console.log('IFRAME ' + event.srcElement.id + ' loaded at ' + CSSDiff[event.srcElement.id + '_loaded']);
+
+	// check to see if we can run diffNodes()
+	if ( CSSDiff.last_diff_started && 
+			(CSSDiff.doc1_loaded > CSSDiff.last_diff_started) && 
+			(CSSDiff.doc2_loaded > CSSDiff.last_diff_started)
+	) {
+		// console.log("both docs loaded; running diffNodes() now");
+		diffNodes(CSSDiff.doc1, CSSDiff.doc2);
+
+	} else {
+		// console.log("both docs not loaded yet; holding off on diffNodes()");
+	}
+}
 
 
 // ---------------------------------------------------------------------------
 
-jQuery(document).ready(function($){
-	$('#diff-css').bind('click', { inputs: ['doc1_url', 'doc2_url'] }, diffNodes);
 
-	$('#doc1_load').bind('click', { input_id: 'doc1_url', node_id: 'doc1' }, loadDoc);
-	$('#doc2_load').bind('click', { input_id: 'doc2_url', node_id: 'doc2' }, loadDoc);
+var CSSDiff = {
+	// refs to the IFRAMEs that hold the documents to compare
+	doc1 : null,
+	doc2 : null,
+
+	// stores timestamps of when these events happened. allows us to determine 
+	// if diffNodes() should auto-run or not.
+	last_diff_started : null,
+	doc1_loaded : null,
+	doc2_loaded : null,
+	done : null
+	
+	// 
+	// discussion of the above:
+	//   * page loads with query params passed
+	//   * last_diff_started is set to current time
+	//   * loadDoc(doc1) called
+	//   * loadDoc(doc2) called
+	//   * doc2 IFRAME finishes loading; doc2_loaded set to current time
+	//   * iframeLoadHandler checks to see if both doc[12]_loaded > last_diff_started (it's not)
+	//   * doc1 IFRAME finishes loading; doc1_loaded set to current time
+	//   * iframeLoadHandler checks to see if both doc[12]_loaded > last_diff_started (it is)
+	//   * diffNodes() starts
+	// 
+
+};
+
+
+jQuery(document).ready(function($){
+
+	CSSDiff.doc1 = document.getElementById('doc1');
+	CSSDiff.doc2 = document.getElementById('doc2');
+
+	// attach event handler to IFRAMEs so we know when they're loaded. this 
+	// allows us to auto-execute diffNodes() when URLs are passed in via query 
+	// params.
+	$('.embedded-doc').bind('load', iframeLoadHandler);
+
+	// attach event handler to the "Run Diff CSS" button.
+	$('#diff-css').bind('click', { }, function(event){
+		CSSDiff.last_diff_started = new Date();
+
+		// TODO: how do we determine if both documents are ready to be checked? 
+		// (e.g. loaded w/o errors)
+		diffNodes(CSSDiff.doc1, CSSDiff.doc2);
+	});
+
+	// attach event to the 'load document' buttons. same event handler, 
+	// different event data.
+	$('#doc1_load').bind('click', { node_id: 'doc1' }, loadDocClickHandler);
+	$('#doc2_load').bind('click', { node_id: 'doc2' }, loadDocClickHandler);
+
+	// attempt to parse query params to allow (initial) use programmatically 
+	// via phantomjs.
+	// 
+	// TODO: figure out how to keep the page/environment up and run multiple 
+	// diffs.
+	loadDocsFromQueryString();
+
 });
