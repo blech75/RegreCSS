@@ -21,11 +21,14 @@ function diffNodes(doc1, doc2) {
 	var doc1_url = doc1.baseURI;
 	var doc2_url = doc2.baseURI;
 
+	// a bit of a sanity check here. let's just deal with IFRAMEs for now, 
+	// mmmmmkay?
 	if ( !(_.contains([doc1.tagName.toLowerCase(), doc2.tagName.toLowerCase()], 'iframe')) ) {
 		console.log('ERROR: nodes must both be IFRAMEs.')
 		return;
 	}
 
+	// some rudimwntary counters that store data for summary later.
 	var node_tally = 0;
 	var node_tally_skipped = 0;
 
@@ -116,6 +119,8 @@ function diffNodes(doc1, doc2) {
 };
 
 
+// returns an array with two items: strings that represent the URL "base" of 
+// the docs. takes two URLs (filenames right now).
 function returnCommonPathPart(path1, path2) {
 	var path1_parts = path1.split("/");
 	var path2_parts = path2.split("/");
@@ -140,6 +145,8 @@ function returnCommonPathPart(path1, path2) {
 };
 
 
+// output the diff for a node. takes two args: the node, and an array of the 
+// reported differences (as strings).
 function displayDiffResult(node, diffs) {
 	var node_info = node.nodeName + 
 		((node.id != "") ? "#" + node.id : "") + 
@@ -153,7 +160,8 @@ function displayDiffResult(node, diffs) {
 };
 
 
-// loads URL into IFRAME
+// loads URL into IFRAME. takes two args: URL of the doc to load, and the 
+// IFRAME doc reference (a node) to load it into.
 function loadDoc(url, iframe_el) {
 	iframe_el.src = url;
 };
@@ -211,11 +219,16 @@ function loadDocsFromQueryString(query_string) {
 }
 
 
+// event handler intended to be bound to the "load document" button. takes
+// one argument: a DOM event.
 function loadDocClickHandler(event) {
 	loadDoc(document.getElementById(event.data.node_id + "_url").value, document.getElementById(event.data.node_id));
 }
 
 
+// event handler intended to be called onload of the IFRAME, which allows us 
+// to determine if we should run diffNodes() (for automatic execution when 
+// initiated via query string).
 function iframeLoadHandler(event) {
 	CSSDiff[event.srcElement.id + '_loaded'] = new Date();
 //	console.log('IFRAME ' + event.srcElement.id + ' loaded at ' + CSSDiff[event.srcElement.id + '_loaded']);
@@ -237,6 +250,8 @@ function iframeLoadHandler(event) {
 // ---------------------------------------------------------------------------
 
 
+// at the moment, this is a singleton that holds the CSSDiff object for 
+// tracking oft-used references.
 var CSSDiff = {
 	// refs to the IFRAMEs that hold the documents to compare
 	doc1 : null,
@@ -265,8 +280,11 @@ var CSSDiff = {
 };
 
 
+// standard DOM ready event handler.
 jQuery(document).ready(function($){
 
+	// grab the DOM nodes so we don't need to get them each time. these should 
+	// stay constant for the entire scope of our work.
 	CSSDiff.doc1 = document.getElementById('doc1');
 	CSSDiff.doc2 = document.getElementById('doc2');
 
@@ -277,6 +295,8 @@ jQuery(document).ready(function($){
 
 	// attach event handler to the "Run Diff CSS" button.
 	$('#diff-css').bind('click', { }, function(event){
+		// record when we click the button so we can make better decisions (read: 
+		// automate) things later.
 		CSSDiff.last_diff_started = new Date();
 
 		// TODO: how do we determine if both documents are ready to be checked? 
