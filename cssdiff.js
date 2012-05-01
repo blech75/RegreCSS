@@ -159,14 +159,15 @@ function loadDoc(url, iframe_el) {
 };
 
 
-// allow for URLs to be passed in via query string.
-// automatically load and run the diff once URLs load
-function loadDocsFromQueryString() {
+// allow for URLs to be passed in via query string, which allows for 
+// automatic loading and running of the diff once URLs load. takes one 
+// argument, a query string (presumably from window.location.search).
+function loadDocsFromQueryString(query_string) {
 	// bail if the query string is missing, or just contains "?"
-	if (window.location.search.length <= 1) { return; }
+	if (query_string.length <= 1) { return; }
 
 	// remove the ? and turn into an array in one fell swoop
-	var query_params = window.location.search.substring(1).split("&");
+	var query_params = query_string.substring(1).split("&");
 
 	if (query_params.length >= 1 && query_params[0] != "") {
 		var doc1, doc2, url1, url2, nv_pair;
@@ -293,6 +294,6 @@ jQuery(document).ready(function($){
 	// 
 	// TODO: figure out how to keep the page/environment up and run multiple 
 	// diffs.
-	loadDocsFromQueryString();
+	loadDocsFromQueryString(window.location.search);
 
 });
