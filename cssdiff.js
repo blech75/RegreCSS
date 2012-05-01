@@ -247,6 +247,19 @@ function iframeLoadHandler(event) {
 }
 
 
+// event handler intended to be called when the "run css diff" button is 
+// clicked.
+function diffCssClickHandler(event){
+	// record when we click the button so we can make better decisions (read: 
+	// automate) things later.
+	CSSDiff.last_diff_started = new Date();
+
+	// TODO: how do we determine if both documents are ready to be checked? 
+	// (e.g. loaded w/o errors)
+	diffNodes(CSSDiff.doc1, CSSDiff.doc2);
+}
+
+
 // ---------------------------------------------------------------------------
 
 
@@ -294,15 +307,7 @@ jQuery(document).ready(function($){
 	$('.embedded-doc').bind('load', iframeLoadHandler);
 
 	// attach event handler to the "Run Diff CSS" button.
-	$('#diff-css').bind('click', { }, function(event){
-		// record when we click the button so we can make better decisions (read: 
-		// automate) things later.
-		CSSDiff.last_diff_started = new Date();
-
-		// TODO: how do we determine if both documents are ready to be checked? 
-		// (e.g. loaded w/o errors)
-		diffNodes(CSSDiff.doc1, CSSDiff.doc2);
-	});
+	$('#diff-css').bind('click', diffCssClickHandler);
 
 	// attach event to the 'load document' buttons. same event handler, 
 	// different event data.
