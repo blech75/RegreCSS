@@ -219,47 +219,6 @@ function loadDocsFromQueryString(query_string) {
 }
 
 
-// event handler intended to be bound to the "load document" button. takes
-// one argument: a DOM event.
-function loadDocClickHandler(event) {
-	loadDoc(document.getElementById(event.data.node_id + "_url").value, document.getElementById(event.data.node_id));
-}
-
-
-// event handler intended to be called onload of the IFRAME, which allows us 
-// to determine if we should run diffNodes() (for automatic execution when 
-// initiated via query string).
-function iframeLoadHandler(event) {
-	CSSDiff[event.srcElement.id + '_loaded'] = new Date();
-//	console.log('IFRAME ' + event.srcElement.id + ' loaded at ' + CSSDiff[event.srcElement.id + '_loaded']);
-
-	// check to see if we can run diffNodes()
-	if ( CSSDiff.last_diff_started && 
-			(CSSDiff.doc1_loaded > CSSDiff.last_diff_started) && 
-			(CSSDiff.doc2_loaded > CSSDiff.last_diff_started)
-	) {
-		// console.log("both docs loaded; running diffNodes() now");
-		diffNodes(CSSDiff.doc1, CSSDiff.doc2);
-
-	} else {
-		// console.log("both docs not loaded yet; holding off on diffNodes()");
-	}
-}
-
-
-// event handler intended to be called when the "run css diff" button is 
-// clicked.
-function diffCssClickHandler(event){
-	// record when we click the button so we can make better decisions (read: 
-	// automate) things later.
-	CSSDiff.last_diff_started = new Date();
-
-	// TODO: how do we determine if both documents are ready to be checked? 
-	// (e.g. loaded w/o errors)
-	diffNodes(CSSDiff.doc1, CSSDiff.doc2);
-}
-
-
 // ---------------------------------------------------------------------------
 
 
@@ -295,6 +254,48 @@ var CSSDiff = {
 
 // standard DOM ready event handler.
 jQuery(document).ready(function($){
+
+	// event handler intended to be bound to the "load document" button. takes
+	// one argument: a DOM event.
+	function loadDocClickHandler(event) {
+		loadDoc(document.getElementById(event.data.node_id + "_url").value, document.getElementById(event.data.node_id));
+	}
+
+
+	// event handler intended to be called onload of the IFRAME, which allows us 
+	// to determine if we should run diffNodes() (for automatic execution when 
+	// initiated via query string).
+	function iframeLoadHandler(event) {
+		CSSDiff[event.srcElement.id + '_loaded'] = new Date();
+	//	console.log('IFRAME ' + event.srcElement.id + ' loaded at ' + CSSDiff[event.srcElement.id + '_loaded']);
+
+		// check to see if we can run diffNodes()
+		if ( CSSDiff.last_diff_started && 
+				(CSSDiff.doc1_loaded > CSSDiff.last_diff_started) && 
+				(CSSDiff.doc2_loaded > CSSDiff.last_diff_started)
+		) {
+			// console.log("both docs loaded; running diffNodes() now");
+			diffNodes(CSSDiff.doc1, CSSDiff.doc2);
+
+		} else {
+			// console.log("both docs not loaded yet; holding off on diffNodes()");
+		}
+	}
+
+
+	// event handler intended to be called when the "run css diff" button is 
+	// clicked.
+	function diffCssClickHandler(event){
+		// record when we click the button so we can make better decisions (read: 
+		// automate) things later.
+		CSSDiff.last_diff_started = new Date();
+
+		// TODO: how do we determine if both documents are ready to be checked? 
+		// (e.g. loaded w/o errors)
+		diffNodes(CSSDiff.doc1, CSSDiff.doc2);
+	}
+
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	// grab the DOM nodes so we don't need to get them each time. these should 
 	// stay constant for the entire scope of our work.
