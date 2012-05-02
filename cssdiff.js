@@ -229,15 +229,7 @@ var CSSDiff = {
 	doc1 : null,
 	doc2 : null,
 
-	// stores timestamps of when these events happened. allows us to determine 
-	// if diffNodes() should auto-run or not.
-	last_diff_started : null,
-	doc1_loaded : null,
-	doc2_loaded : null,
-	done : null
-	
-	// 
-	// discussion of the above:
+	// The Crazy Way That Dates Are Used So That We Can Run In An Automated Fashion:
 	//   * page loads with query params passed
 	//   * last_diff_started is set to current time
 	//   * loadDoc(doc1) called
@@ -248,6 +240,12 @@ var CSSDiff = {
 	//   * iframeLoadHandler checks to see if both doc[12]_loaded > last_diff_started (it is)
 	//   * diffNodes() starts
 	// 
+	// stores timestamps of when these events happened. allows us to determine 
+	// if diffNodes() should auto-run or not.
+	last_diff_started : null,
+	doc1_loaded : null,
+	doc2_loaded : null,
+	done : null
 
 };
 
