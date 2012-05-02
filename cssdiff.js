@@ -4,6 +4,9 @@
 // should allow users to specify selectors to ignore and/or the properties to 
 // ignore. need to think about this.
 
+// TODO: make this more interactive when run in the browser. output a dynamic 
+// report that the user can interact with, highlighting elements that differ, 
+// etc.
 
 var CSSDiff = {
 	// refs to the IFRAMEs that hold the documents to compare
@@ -79,6 +82,7 @@ var CSSDiff = {
 			}
 
 			// get the conputed style for this element
+			// TODO: what about :hover states, etc.? (the term escapes me at the moment)
 			var el1_style = doc1.contentDocument.defaultView.getComputedStyle(doc1_els[i]);
 			var el2_style = doc2.contentDocument.defaultView.getComputedStyle(doc2_els[i]);
 
