@@ -81,7 +81,7 @@ page.open(cssdiff_page_url, function(status){
 			function(){
 				// this check will test for the diff finishing
 				return page.evaluate(function(){
-					return (true && (CSSDiff.done > CSSDiff.last_diff_started));
+					return (true && (CSSDiff.diff_completed_at > CSSDiff.last_diff_started_at));
 				});
 			},
 			// not much to do here; just exit

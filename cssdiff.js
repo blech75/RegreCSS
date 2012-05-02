@@ -15,21 +15,21 @@ var CSSDiff = {
 
 	// The Crazy Way That Dates Are Used So That We Can Run In An Automated Fashion:
 	//   * page loads with query params passed
-	//   * last_diff_started is set to current time
+	//   * last_diff_started_at is set to current time
 	//   * loadDoc(doc1) called
 	//   * loadDoc(doc2) called
-	//   * doc2 IFRAME finishes loading; doc2_loaded set to current time
-	//   * iframeLoadHandler checks to see if both doc[12]_loaded > last_diff_started (it's not)
-	//   * doc1 IFRAME finishes loading; doc1_loaded set to current time
-	//   * iframeLoadHandler checks to see if both doc[12]_loaded > last_diff_started (it is)
+	//   * doc2 IFRAME finishes loading; doc2_loaded_at set to current time
+	//   * iframeLoadHandler checks to see if both doc[12]_loaded > last_diff_started_at (it's not)
+	//   * doc1 IFRAME finishes loading; doc1_loaded_at set to current time
+	//   * iframeLoadHandler checks to see if both doc[12]_loaded > last_diff_started_at (it is)
 	//   * diffNodes() starts
 	// 
 	// stores timestamps of when these events happened. allows us to determine 
 	// if diffNodes() should auto-run or not.
-	last_diff_started : null,
-	doc1_loaded : null,
-	doc2_loaded : null,
-	done : null,
+	last_diff_started_at : null,
+	doc1_loaded_at : null,
+	doc2_loaded_at : null,
+	diff_completed_at : null,
 
 	// diffNodes takes two arguments, which are IFRAME node references
 	diffNodes : function (doc1, doc2) {
@@ -141,7 +141,7 @@ var CSSDiff = {
 		console.log("CSS Diff completed in " + (TIME_END - TIME_START) + "ms. " + node_tally + " node(s) differ, " + node_tally_skipped + " node(s) skipped.");
 
 		// signal we're done so phantomjs can exit cleanly
-		this.done = new Date();
+		this.diff_completed_at = new Date();
 	},
 
 	// allow for URLs to be passed in via query string, which allows for 
@@ -177,7 +177,7 @@ var CSSDiff = {
 				if (url1 && url2) { break; }
 			} // END: for loop
 
-			this.last_diff_started = new Date();
+			this.last_diff_started_at = new Date();
 
 			// we're not validating URLs beyond string length; not worth it.
 			if (url1 && url1.length > 0) {
@@ -264,13 +264,13 @@ jQuery(document).ready(function($){
 	// to determine if we should run diffNodes() (for automatic execution when 
 	// initiated via query string).
 	function iframeLoadHandler(event) {
-		CSSDiff[event.srcElement.id + '_loaded'] = new Date();
+		CSSDiff[event.srcElement.id + '_loaded_at'] = new Date();
 	//	console.log('IFRAME ' + event.srcElement.id + ' loaded at ' + CSSDiff[event.srcElement.id + '_loaded']);
 
 		// check to see if we can run diffNodes()
-		if ( CSSDiff.last_diff_started && 
-				(CSSDiff.doc1_loaded > CSSDiff.last_diff_started) && 
-				(CSSDiff.doc2_loaded > CSSDiff.last_diff_started)
+		if ( CSSDiff.last_diff_started_at && 
+				(CSSDiff.doc1_loaded_at > CSSDiff.last_diff_started_at) && 
+				(CSSDiff.doc2_loaded_at > CSSDiff.last_diff_started_at)
 		) {
 			// console.log("both docs loaded; running diffNodes() now");
 			CSSDiff.diffNodes(CSSDiff.doc1, CSSDiff.doc2);
@@ -286,7 +286,7 @@ jQuery(document).ready(function($){
 	function diffCssClickHandler(event){
 		// record when we click the button so we can make better decisions (read: 
 		// automate) things later.
-		CSSDiff.last_diff_started = new Date();
+		CSSDiff.last_diff_started_at = new Date();
 
 		// TODO: how do we determine if both documents are ready to be checked? 
 		// (e.g. loaded w/o errors)
