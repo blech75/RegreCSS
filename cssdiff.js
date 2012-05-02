@@ -8,6 +8,10 @@
 // report that the user can interact with, highlighting elements that differ, 
 // etc.
 
+// TODO: add pushState support that will update the browser URL when you run 
+// the diff, allowing you to copy/paste the URL around.
+
+
 var CSSDiff = {
 	// refs to the IFRAMEs that hold the documents to compare
 	doc1 : null,
