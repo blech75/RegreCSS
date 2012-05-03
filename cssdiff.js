@@ -133,7 +133,7 @@ var CSSDiff = {
 
 			// display diff result for node if there is any
 			if (css_diffs.length > 0) {
-				this.displayDiffResult(doc1_els[i], css_diffs);
+				this.displayNodeDiffResult(doc1_els[i], css_diffs);
 			}
 
 			// clear diff list for next node
@@ -207,7 +207,7 @@ var CSSDiff = {
 
 	// output the diff for a node. takes two args: the node, and an array of the 
 	// reported differences (as strings).
-	displayDiffResult : function(node, diffs) {
+	displayNodeDiffResult : function(node, diffs) {
 		var node_info = node.nodeName + 
 			((node.id != "") ? "#" + node.id : "") + 
 			((node.className != "") ? "." + node.className : "");
