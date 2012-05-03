@@ -26,17 +26,17 @@ var CSSDiff = {
 	//   * iframeLoadHandler checks to see if both doc[12]_loaded > last_diff_started_at (it's not)
 	//   * doc1 IFRAME finishes loading; doc1_loaded_at set to current time
 	//   * iframeLoadHandler checks to see if both doc[12]_loaded > last_diff_started_at (it is)
-	//   * diffNodes() starts
+	//   * diffDocumentNodes() starts
 	// 
 	// stores timestamps of when these events happened. allows us to determine 
-	// if diffNodes() should auto-run or not.
+	// if diffDocumentNodes() should auto-run or not.
 	last_diff_started_at : null,
 	doc1_loaded_at : null,
 	doc2_loaded_at : null,
 	diff_completed_at : null,
 
-	// diffNodes takes two arguments, which are IFRAME node references
-	diffNodes : function (doc1, doc2) {
+	// diffDocumentNodes takes two arguments, which are IFRAME node references
+	diffDocumentNodes : function (doc1, doc2) {
 		var TIME_START = new Date();
 
 		// use this regex to ignore certain CSS properties
@@ -265,22 +265,22 @@ jQuery(document).ready(function($){
 
 
 	// event handler intended to be called onload of the IFRAME, which allows us 
-	// to determine if we should run diffNodes() (for automatic execution when 
+	// to determine if we should run diffDocumentNodes() (for automatic execution when 
 	// initiated via query string).
 	function iframeLoadHandler(event) {
 		CSSDiff[event.srcElement.id + '_loaded_at'] = new Date();
 	//	console.log('IFRAME ' + event.srcElement.id + ' loaded at ' + CSSDiff[event.srcElement.id + '_loaded']);
 
-		// check to see if we can run diffNodes()
+		// check to see if we can run diffDocumentNodes()
 		if ( CSSDiff.last_diff_started_at && 
 				(CSSDiff.doc1_loaded_at > CSSDiff.last_diff_started_at) && 
 				(CSSDiff.doc2_loaded_at > CSSDiff.last_diff_started_at)
 		) {
-			// console.log("both docs loaded; running diffNodes() now");
-			CSSDiff.diffNodes(CSSDiff.doc1, CSSDiff.doc2);
+			// console.log("both docs loaded; running diffDocumentNodes() now");
+			CSSDiff.diffDocumentNodes(CSSDiff.doc1, CSSDiff.doc2);
 
 		} else {
-			// console.log("both docs not loaded yet; holding off on diffNodes()");
+			// console.log("both docs not loaded yet; holding off on diffDocumentNodes()");
 		}
 	}
 
@@ -294,7 +294,7 @@ jQuery(document).ready(function($){
 
 		// TODO: how do we determine if both documents are ready to be checked? 
 		// (e.g. loaded w/o errors)
-		CSSDiff.diffNodes(CSSDiff.doc1, CSSDiff.doc2);
+		CSSDiff.diffDocumentNodes(CSSDiff.doc1, CSSDiff.doc2);
 	}
 
 	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -305,7 +305,7 @@ jQuery(document).ready(function($){
 	CSSDiff.doc2 = document.getElementById('doc2');
 
 	// attach event handler to IFRAMEs so we know when they're loaded. this 
-	// allows us to auto-execute diffNodes() when URLs are passed in via query 
+	// allows us to auto-execute diffDocumentNodes() when URLs are passed in via query 
 	// params.
 	$('.embedded-doc').bind('load', iframeLoadHandler);
 
