@@ -112,7 +112,7 @@ var CSSDiff = {
 					//   url(img/logo.gif)
 					// 
 					if (URL_REGEX.test(el1_style[css_props[j]])) {
-						var common_path_parts = returnCommonPathPart(doc1_url, doc2_url);
+						var common_path_parts = determineCommonPathParts(doc1_url, doc2_url);
 						var revised_prop1 = el1_style[css_props[j]].split(common_path_parts[0]).join("");
 						var revised_prop2 = el2_style[css_props[j]].split(common_path_parts[1]).join("");
 						if (revised_prop1 == revised_prop2) { continue; }
@@ -221,7 +221,7 @@ var CSSDiff = {
 
 	// utlility function that returns an array with two items: strings that 
 	// represent the URL "base" of the docs. takes two URLs (filenames right now).
-	returnCommonPathPart : function (path1, path2) {
+	determineCommonPathParts : function (path1, path2) {
 		var path1_parts = path1.split("/");
 		var path2_parts = path2.split("/");
 
