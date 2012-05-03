@@ -158,28 +158,34 @@ var CSSDiff = {
 		// remove the ? and turn into an array in one fell swoop
 		var query_params = query_string.substring(1).split("&");
 
+		// make sure there's an actual query string to parse
 		if (query_params.length >= 1 && query_params[0] != "") {
-			var doc1, doc2, url1, url2, nv_pair;
+			var doc1, doc2, url1, url2, kv_pair;
 
 			// this may seem stupid, but it's less code and less looping.
 			for (var i = 0; i < query_params.length; i++) {
-				nv_pair = query_params[i].split("=");
+				kv_pair = query_params[i].split("=");
 
-				if ( (nv_pair.length != 2) || (nv_pair[1] && (nv_pair[1] == "")) ) {
-					console.log("confused parsing query param " + i + ": " + nv_pair.join());
+				// sanity check
+				if ( (kv_pair.length != 2) || (kv_pair[1] && (kv_pair[1] == "")) ) {
+					console.log("confused parsing query param " + i + ": " + kv_pair.join());
 					continue;
 				}
 
 				// set vars based on query string
-				if ( !url1 && (nv_pair[0] == 'url1') ) {
-					url1 = decodeURIComponent(nv_pair[1]);
-				} else if ( !url2 && (nv_pair[0] == 'url2')  ) {
-					url2 = decodeURIComponent(nv_pair[1]);
+				if ( !url1 && (kv_pair[0] == 'url1') ) {
+					url1 = decodeURIComponent(kv_pair[1]);
+				} else if ( !url2 && (kv_pair[0] == 'url2')  ) {
+					url2 = decodeURIComponent(kv_pair[1]);
 				} else {
-					console.log(nv_pair[0], nv_pair[1]);
+					// unexpected key/value pair; log it.
+					console.log(kv_pair[0], kv_pair[1]);
 				}
+
+				// break out of loop early if we have both URL. this means if url1 is 
+				// repeated twice in the query string, we just use the first instance
 				if (url1 && url2) { break; }
-			} // END: for loop
+			}
 
 			this.last_diff_started_at = new Date();
 
