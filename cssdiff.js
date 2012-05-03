@@ -189,7 +189,8 @@ var CSSDiff = {
 
 			this.last_diff_started_at = new Date();
 
-			// we're not validating URLs beyond string length; not worth it.
+			// update the UI and load the URLs into the IFRAMEs
+			// NOTE: we're not validating URLs beyond string length; not worth it.
 			if (url1 && url1.length > 0) {
 				document.getElementById("doc1_url").value = url1;
 				// console.log("Loading URL1: " + url1);
