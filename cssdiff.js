@@ -146,6 +146,10 @@ var CSSDiff = {
 
 		// signal we're done so phantomjs can exit cleanly
 		this.diff_completed_at = new Date();
+		
+		// set the last diff's start time to null so we don't trigger a re-diff 
+		// on load of the next doc.
+		this.last_diff_started_at = null;
 	},
 
 	// allow for URLs to be passed in via query string, which allows for 
