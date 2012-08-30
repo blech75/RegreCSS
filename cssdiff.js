@@ -160,7 +160,6 @@ var CSSDiff = {
 		var node_tally_skipped = 0;
 
 		// loop over all of the elements in the first doc (and hope they're the same in the second doc!)
-		// TODO: refactor this into its own function
 		for (var i=0; i < doc1_els.length; i++) {
 			// check to see if we're comparing apples to apples, or even if the second apple exists!
 			if (doc1_els[i] && !doc2_els[i]) {
