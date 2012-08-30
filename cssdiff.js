@@ -242,19 +242,19 @@ var CSSDiff = {
 
 			} // END: for loop over CSS props
 
-			// display diff result for node if there is any
+			// if there are any property diffs on this node, add them to the node diffs
 			if (prop_diffs.length > 0) {
 				node_diffs.push(new CSSDiffResult(doc1_els[i], prop_diffs));
-				// this.displayNodeDiffResult(doc1_els[i], prop_diffs);
 			}
 
 			// clear diff list for next node
 			prop_diffs = [];
 		}
 
+		// return an object that will then be passed over to displayDiffResults()
 		return {
 			node_diffs : node_diffs,
-			skipped: node_tally_skipped
+			skipped : node_tally_skipped
 		};
   },
 
