@@ -16,6 +16,7 @@ var CSSDiffResult = function(node, diffs) {
 	this.diffs = diffs;	
 };
 
+// allow this to be easily printed out
 CSSDiffResult.prototype.toString = function(){
 	// build up a representaton of the node name + class/ID
 	var node_info = this.node.nodeName + 
@@ -30,6 +31,26 @@ CSSDiffResult.prototype.toString = function(){
 	return node_info + " < " + path_info + "\n" + this.diffs.join("\n");
 };
 
+CSSDiffResult.prototype.toHTML = function(){
+	// build up a representaton of the node name + class/ID
+	var node_info = this.node.nodeName + 
+		((this.node.id != "") ? "#" + this.node.id : "") + 
+		((this.node.className != "") ? "." + this.node.className : "");
+
+	// grab the path to the node
+	var path_info = jQuery(this.node).parentsUntil('html').map(function() { 
+		return this.tagName; 
+	}).get().join(" < ");
+
+	return [
+		"<h3>" + node_info + " < " + path_info + "<\/h3>",
+		"<ul>",
+		_.map(this.diffs, function(d) { return d.toHTML(); }).join("\n"),
+		// this.diffs.join("\n"),
+		"</ul>"
+	].join("\n");
+};
+
 
 var CSSPropertyDiffResult = function(prop, doc1_value, doc2_value) {
 	this.prop = prop;
@@ -37,10 +58,19 @@ var CSSPropertyDiffResult = function(prop, doc1_value, doc2_value) {
 	this.doc2_value = doc2_value;
 };
 
+// allow this to be easily printed out
 CSSPropertyDiffResult.prototype.toString = function() {
 	return " » " + this.prop + 
 		" : " + this.doc1_value + 
 		" vs. " + this.doc2_value;
+};
+
+CSSPropertyDiffResult.prototype.toHTML = function() {
+	return "<li>" +
+		this.prop + 
+		" : " + this.doc1_value + 
+		" vs. " + this.doc2_value +
+		"<\/li>";
 };
 
 
@@ -83,6 +113,8 @@ var CSSDiff = {
 		// (these stay constant across diff runs.)
 		this.doc1 = document.getElementById('doc1');
 		this.doc2 = document.getElementById('doc2');
+
+		this.output_el = document.getElementById('output-container')
 	},
 
 	// executes diff
@@ -293,11 +325,8 @@ var CSSDiff = {
 	// output the diff for a node. takes two args: the node, and an array of the 
 	// reported differences (as strings).
 	displayNodeDiffResult : function(node_diff) {
-		console.log(node_diff.toString());
-		
-		// var msg_node = document.createElement("p");
-		// msg_node.appendChild(document.createTextNode(msg));
-		// document.getElementById("output-container").appendChild(msg_node);
+		// console.log(node_diff.toString());
+		return node_diff.toHTML();
 	},
 
   // displays the diff results by updating the document
@@ -305,12 +334,11 @@ var CSSDiff = {
 		// console.log everything for right now
 		console.log("CSS Diff completed in " + results.elapsed_time + "ms. " + results.node_diffs.length + " node(s) differ, " + results.skipped + " node(s) skipped.");
 
-		_.each(results.node_diffs, function(r) {
-			this.displayNodeDiffResult(r);
-		}, this);
+		var results_html = _.map(results.node_diffs, function(r) {
+			return this.displayNodeDiffResult(r);
+		}, this).join("\n");
 
-		// TODO: format results and write into document
-		// jQuery('#output-container').html(results_html);
+		this.output_el.innerHTML = results_html;
 	},
 
 	// utlility function that returns an array with two items: strings that 
