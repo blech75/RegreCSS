@@ -11,6 +11,38 @@
 // TODO: add pushState support that will update the browser URL when you run 
 // the diff, allowing you to copy/paste the URL around.
 
+var CSSDiffResult = function(node, diffs) {
+	this.node = node;
+	this.diffs = diffs;	
+};
+
+CSSDiffResult.prototype.toString = function(){
+	// build up a representaton of the node name + class/ID
+	var node_info = this.node.nodeName + 
+		((this.node.id != "") ? "#" + this.node.id : "") + 
+		((this.node.className != "") ? "." + this.node.className : "");
+
+	// grab the path to the node
+	var path_info = jQuery(this.node).parentsUntil('html').map(function() { 
+		return this.tagName; 
+	}).get().join(" < ");
+
+	return node_info + " < " + path_info + "\n" + this.diffs.join("\n");
+};
+
+
+var CSSPropertyDiffResult = function(prop, doc1_value, doc2_value) {
+	this.prop = prop;
+	this.doc1_value = doc1_value;
+	this.doc2_value = doc2_value;
+};
+
+CSSPropertyDiffResult.prototype.toString = function() {
+	return " » " + this.prop + 
+		" : " + this.doc1_value + 
+		" vs. " + this.doc2_value;
+};
+
 
 var CSSDiff = {
 	// refs to the IFRAMEs that hold the documents to compare
@@ -26,29 +58,57 @@ var CSSDiff = {
 	//   * iframeLoadHandler checks to see if both doc[12]_loaded > last_diff_started_at (it's not)
 	//   * doc1 IFRAME finishes loading; doc1_loaded_at set to current time
 	//   * iframeLoadHandler checks to see if both doc[12]_loaded > last_diff_started_at (it is)
-	//   * diffDocumentNodes() starts
+	//   * diffDocuments() starts
 	// 
 	// stores timestamps of when these events happened. allows us to determine 
-	// if diffDocumentNodes() should auto-run or not.
+	// if diffDocuments() should auto-run or not.
 	last_diff_started_at : null,
 	doc1_loaded_at : null,
 	doc2_loaded_at : null,
 	diff_completed_at : null,
 
-	// diffDocumentNodes takes two arguments, which are IFRAME node references
-	diffDocumentNodes : function (doc1, doc2) {
+	// use this regex to ignore certain CSS properties
+	// TODO:
+	//  * confirm this list and/or ignore all vendor prefixes?
+	//  * make this configurable via the UI;
+	IGNORE_REGEX : /^-(webkit|ms|moz|o)/,
+	URL_REGEX : /url\([^)]+\)/,
+
+	// the DOM node which contains the output of the diff engine
+	output_el : null,
+
+	// set up the prerequsites
+	init : function () {
+		// grab the DOM node references so we don't need to get them each run. 
+		// (these stay constant across diff runs.)
+		this.doc1 = document.getElementById('doc1');
+		this.doc2 = document.getElementById('doc2');
+	},
+
+	// executes diff
+	run : function() {
+		this.diffDocuments();
+		this.updateURLBar();
+	},
+
+	// updates the browser's URL bar so that you can bookmark the diff
+	updateURLBar : function() {
+		// TODO: pushState magic here
+	},
+
+	// diffDocuments optionally takes two arguments, which are IFRAME node 
+	// references. otherwise, looks at doc1 and doc2 properties.
+	diffDocuments : function (doc1_passed, doc2_passed) {
+		// allow docs to be passed in, for separation
+		var doc1 = doc1_passed || this.doc1;
+		var doc2 = doc2_passed || this.doc2;
+
+		// benchmarking
 		var TIME_START = new Date();
 
-		// use this regex to ignore certain CSS properties
-		// TODO:
-		//  * confirm this list and/or ignore all vendor prefixes?
-		//  * make this configurable via the UI;
-		var IGNORE_REGEX = /^-(webkit|ms|moz|o)/;
-		var URL_REGEX = /url\([^)]+\)/;
-
 		// pull out the URLs of the documents for later use
-		var doc1_url = doc1.baseURI;
-		var doc2_url = doc2.baseURI;
+		this.doc1_url = doc1.baseURI;
+		this.doc2_url = doc2.baseURI;
 
 		// a bit of a sanity check here. let's just deal with IFRAMEs for now, 
 		// mmmmmkay?
@@ -56,10 +116,6 @@ var CSSDiff = {
 			console.log('ERROR: nodes must both be IFRAMEs.')
 			return;
 		}
-
-		// some rudimwntary counters that store data for summary later.
-		var node_tally = 0;
-		var node_tally_skipped = 0;
 
 		// grab all of the elements in the IFRAME's DOM
 		var doc1_els = _.toArray(doc1.contentDocument.body.getElementsByTagName('*'));
@@ -70,13 +126,41 @@ var CSSDiff = {
 			console.log("WARNING: DOM trees differ between documents! (doc1: " + doc1_els.length + ", doc2: " + doc2_els.length + ") Proceed with caution.");
 		}
 
+		// do the dirty work
+		var results = this.diffNodes(doc1, doc1_els, doc2, doc2_els);
+
+		// benchmarking
+		var TIME_END = new Date();
+
+		// store the elapsed time on the results object for reporting
+		results.elapsed_time = TIME_END - TIME_START;
+
+		// signal we're done so phantomjs can exit cleanly
+		this.diff_completed_at = TIME_END;
+
+		// set the last diff's start time to null so we don't trigger a re-diff 
+		// on load of the next doc.
+		this.last_diff_started_at = null;
+
+		// show how we did
+		this.displayDiffResults(results);
+	},
+
+	// takes an two arrays of nodes and compares them
+	diffNodes : function(doc1, doc1_els, doc2, doc2_els) {
 		// holds a list of all the CSS properties
 		var css_props = null;
 
+		var node_diffs = [];
+
 		// holds a list of the CSS props that are different for each node; cleared on each iteration
-		var css_diffs = [];
+		var prop_diffs = [];
+
+		// some rudimwntary counters that store data for summary later.
+		var node_tally_skipped = 0;
 
 		// loop over all of the elements in the first doc (and hope they're the same in the second doc!)
+		// TODO: refactor this into its own function
 		for (var i=0; i < doc1_els.length; i++) {
 			// check to see if we're comparing apples to apples, or even if the second apple exists!
 			if (doc1_els[i] && !doc2_els[i]) {
@@ -86,7 +170,7 @@ var CSSDiff = {
 			}
 
 			// get the conputed style for this element
-			// TODO: what about :hover states, etc.? (the term escapes me at the moment)
+			// TODO: what about pseudo-classes? (:hover, etc.)
 			var el1_style = doc1.contentDocument.defaultView.getComputedStyle(doc1_els[i]);
 			var el2_style = doc2.contentDocument.defaultView.getComputedStyle(doc2_els[i]);
 
@@ -96,7 +180,7 @@ var CSSDiff = {
 			// iterate over the list of CSS properties
 			for (var j=0; j < css_props.length; j++) {
 				// bail out if the property matches the ignore regex
-				if (IGNORE_REGEX.test(css_props[j])) { continue; };
+				if (this.IGNORE_REGEX.test(css_props[j])) { continue; }
 
 				// if the value of the property does not match across documents
 				if (el1_style[css_props[j]] != el2_style[css_props[j]]) {
@@ -111,46 +195,37 @@ var CSSDiff = {
 					// 
 					//   url(img/logo.gif)
 					// 
-					if (URL_REGEX.test(el1_style[css_props[j]])) {
-						var common_path_parts = determineCommonPathParts(doc1_url, doc2_url);
+					if (this.URL_REGEX.test(el1_style[css_props[j]])) {
+						var common_path_parts = this.determineCommonPathParts(this.doc1_url, this.doc2_url);
 						var revised_prop1 = el1_style[css_props[j]].split(common_path_parts[0]).join("");
 						var revised_prop2 = el2_style[css_props[j]].split(common_path_parts[1]).join("");
 						if (revised_prop1 == revised_prop2) { continue; }
 					}
 
-					// log the diff
-					css_diffs.push(
-						" » " + css_props[j] + 
-						" : " + el1_style[css_props[j]] + 
-						" vs. " + el2_style[css_props[j]]
-					);
-
-					// increment the # of nodes that differ, for reporting later
-					node_tally++;
+					prop_diffs.push(new CSSPropertyDiffResult(
+						css_props[j],
+						el1_style[css_props[j]],
+						el2_style[css_props[j]]
+					));
 				}
 
-			}; // END: for loop over CSS props
+			} // END: for loop over CSS props
 
 			// display diff result for node if there is any
-			if (css_diffs.length > 0) {
-				this.displayNodeDiffResult(doc1_els[i], css_diffs);
+			if (prop_diffs.length > 0) {
+				node_diffs.push(new CSSDiffResult(doc1_els[i], prop_diffs));
+				// this.displayNodeDiffResult(doc1_els[i], prop_diffs);
 			}
 
 			// clear diff list for next node
-			css_diffs = [];
+			prop_diffs = [];
+		}
+
+		return {
+			node_diffs : node_diffs,
+			skipped: node_tally_skipped
 		};
-
-		var TIME_END = new Date();
-
-		console.log("CSS Diff completed in " + (TIME_END - TIME_START) + "ms. " + node_tally + " node(s) differ, " + node_tally_skipped + " node(s) skipped.");
-
-		// signal we're done so phantomjs can exit cleanly
-		this.diff_completed_at = new Date();
-		
-		// set the last diff's start time to null so we don't trigger a re-diff 
-		// on load of the next doc.
-		this.last_diff_started_at = null;
-	},
+  },
 
 	// allow for URLs to be passed in via query string, which allows for 
 	// automatic loading and running of the diff once URLs load. takes one 
@@ -206,7 +281,7 @@ var CSSDiff = {
 				this.loadDoc(url2, this.doc2);
 			}
 
-		};		
+		}
 
 	},
 
@@ -218,20 +293,30 @@ var CSSDiff = {
 
 	// output the diff for a node. takes two args: the node, and an array of the 
 	// reported differences (as strings).
-	displayNodeDiffResult : function(node, diffs) {
-		var node_info = node.nodeName + 
-			((node.id != "") ? "#" + node.id : "") + 
-			((node.className != "") ? "." + node.className : "");
+	displayNodeDiffResult : function(node_diff) {
+		console.log(node_diff.toString());
+		
+		// var msg_node = document.createElement("p");
+		// msg_node.appendChild(document.createTextNode(msg));
+		// document.getElementById("output-container").appendChild(msg_node);
+	},
 
-		var path_info = jQuery(node).parentsUntil('html').map(function() { 
-			return this.tagName; 
-		}).get().join(" < ");
+  // displays the diff results by updating the document
+	displayDiffResults : function(results) {
+		// console.log everything for right now
+		console.log("CSS Diff completed in " + results.elapsed_time + "ms. " + results.node_diffs.length + " node(s) differ, " + results.skipped + " node(s) skipped.");
 
-		console.log(node_info + " < " + path_info + "\n" + diffs.join("\n"));
+		_.each(results.node_diffs, function(r) {
+			this.displayNodeDiffResult(r);
+		}, this);
+
+		// TODO: format results and write into document
+		// jQuery('#output-container').html(results_html);
 	},
 
 	// utlility function that returns an array with two items: strings that 
 	// represent the URL "base" of the docs. takes two URLs (filenames right now).
+	// TODO: rip this out of the CSSDiff object
 	determineCommonPathParts : function (path1, path2) {
 		var path1_parts = path1.split("/");
 		var path2_parts = path2.split("/");
@@ -264,6 +349,9 @@ var CSSDiff = {
 // standard DOM ready event handler.
 jQuery(document).ready(function($){
 
+	// run the init script
+	CSSDiff.init();
+
 	// TODO: move these event handlers on to the CSSDiff object. need to figure 
 	// out how function binding works w/ jQuery. (I'm used to Prototype's 
 	// .bind() method )
@@ -271,27 +359,30 @@ jQuery(document).ready(function($){
 	// event handler intended to be bound to the "load document" button. takes
 	// one argument: a DOM event.
 	function loadDocClickHandler(event) {
-		CSSDiff.loadDoc(document.getElementById(event.data.node_id + "_url").value, document.getElementById(event.data.node_id));
+		CSSDiff.loadDoc(
+		  document.getElementById(event.data.node_id + "_url").value, 
+		  document.getElementById(event.data.node_id)
+		);
 	}
 
 
 	// event handler intended to be called onload of the IFRAME, which allows us 
-	// to determine if we should run diffDocumentNodes() (for automatic execution when 
+	// to determine if we should run diffDocuments() (for automatic execution when 
 	// initiated via query string).
 	function iframeLoadHandler(event) {
 		CSSDiff[event.srcElement.id + '_loaded_at'] = new Date();
 	//	console.log('IFRAME ' + event.srcElement.id + ' loaded at ' + CSSDiff[event.srcElement.id + '_loaded']);
 
-		// check to see if we can run diffDocumentNodes()
+		// check to see if we can run diffDocuments()
 		if ( CSSDiff.last_diff_started_at && 
 				(CSSDiff.doc1_loaded_at > CSSDiff.last_diff_started_at) && 
 				(CSSDiff.doc2_loaded_at > CSSDiff.last_diff_started_at)
 		) {
-			// console.log("both docs loaded; running diffDocumentNodes() now");
-			CSSDiff.diffDocumentNodes(CSSDiff.doc1, CSSDiff.doc2);
+			// console.log("both docs loaded; executing CSSDiff.run() now");
+			CSSDiff.run();
 
 		} else {
-			// console.log("both docs not loaded yet; holding off on diffDocumentNodes()");
+      console.log("both docs not loaded yet; holding off on diffDocuments()");
 		}
 	}
 
@@ -299,24 +390,20 @@ jQuery(document).ready(function($){
 	// event handler intended to be called when the "run css diff" button is 
 	// clicked.
 	function diffCssClickHandler(event){
-		// record when we click the button so we can make better decisions (read: 
+		// record when we click the button so we can make better decisions (read:
 		// automate) things later.
 		CSSDiff.last_diff_started_at = new Date();
 
 		// TODO: how do we determine if both documents are ready to be checked? 
 		// (e.g. loaded w/o errors)
-		CSSDiff.diffDocumentNodes(CSSDiff.doc1, CSSDiff.doc2);
+		CSSDiff.run();
 	}
 
 	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	// grab the DOM nodes so we don't need to get them each time. these should 
-	// stay constant for the entire scope of our work.
-	CSSDiff.doc1 = document.getElementById('doc1');
-	CSSDiff.doc2 = document.getElementById('doc2');
 
 	// attach event handler to IFRAMEs so we know when they're loaded. this 
-	// allows us to auto-execute diffDocumentNodes() when URLs are passed in via query 
+	// allows us to auto-execute diffDocuments() when URLs are passed in via query 
 	// params.
 	$('.embedded-doc').bind('load', iframeLoadHandler);
 
