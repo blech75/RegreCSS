@@ -9,22 +9,27 @@ if ( system.args.length != 3 ) {
 	phantom.exit(1);
 }
 
-
+// the URL where the tool lives
 var CSSDIFF_BASE_URL = "http://personal.local/cssdiff/cssdiff.html";
 
+// read the URLs from the command line
 var urls = Array.prototype.slice.call(system.args, 1);
 console.log("Attempting to compare <" + urls[0] + "> to <" + urls[1] + "> ...");
 
+// construct the URL to the diff tool, passing in the params to auto-execute on load
 var cssdiff_page_url = CSSDIFF_BASE_URL + 
 	"?url1=" + encodeURIComponent(urls[0]) + 
 	"&url2=" + encodeURIComponent(urls[1]);
 
+// override the default messaging methods of the page to output to the phantomjs console
 page.onConsoleMessage = function(msg) { console.log("[page console] " + msg); };
 page.onAlert = function(msg) { console.log("[page alert] " + msg); };
 
+// overly verbose logging for hardcore debugging
 // page.onResourceRequested = function(req) { console.log("--> resource requested : " + req.url); };
 // page.onResourceReceived = function(req) { console.log("onResourceReceived : " + req.url); };
 
+// output a stack trace on error
 page.onError = function (msg, trace) {
 	console.log("[page error] " + msg);
 	trace.forEach(function(item) {

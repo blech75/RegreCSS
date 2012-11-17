@@ -11,6 +11,8 @@
 // TODO: add pushState support that will update the browser URL when you run 
 // the diff, allowing you to copy/paste the URL around.
 
+// ---------------------------------------------------------------------------
+
 var CSSDiffResult = function(node, diffs) {
 	this.node = node;
 	this.diffs = diffs;	
@@ -42,8 +44,9 @@ CSSDiffResult.prototype.toHTML = function(){
 		return this.tagName; 
 	}).get().join(" < ");
 
+	// generate the markup for the node and its property diffs
 	return [
-		"<h3>" + node_info + " < " + path_info + "<\/h3>",
+		"<h3>" + node_info + " < " + path_info + " (" + this.diffs.length + ")" + "<\/h3>",
 		"<ul>",
 		_.map(this.diffs, function(d) { return d.toHTML(); }).join("\n"),
 		// this.diffs.join("\n"),
@@ -114,7 +117,7 @@ var CSSDiff = {
 		this.doc1 = document.getElementById('doc1');
 		this.doc2 = document.getElementById('doc2');
 
-		this.output_el = document.getElementById('output-container')
+		this.output_el = document.getElementById('output-container');
 	},
 
 	// executes diff
@@ -334,11 +337,13 @@ var CSSDiff = {
 		// console.log everything for right now
 		console.log("CSS Diff completed in " + results.elapsed_time + "ms. " + results.node_diffs.length + " node(s) differ, " + results.skipped + " node(s) skipped.");
 
+		// iterate over node_diffs, generating the HTML for each
 		var results_html = _.map(results.node_diffs, function(r) {
 			return this.displayNodeDiffResult(r);
 		}, this).join("\n");
 
-		this.output_el.innerHTML = results_html;
+		// shove it into the doc
+		$(this.output_el).html(results_html);
 	},
 
 	// utlility function that returns an array with two items: strings that 
