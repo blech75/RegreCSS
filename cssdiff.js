@@ -13,8 +13,9 @@
 
 // ---------------------------------------------------------------------------
 
-var CSSDiffResult = function(node, diffs) {
-	this.node = node;
+var CSSDiffResult = function(doc1_node, doc2_node, diffs) {
+	this.node = doc1_node;
+	this.node_doc2 = doc2_node;
 	this.diffs = diffs;	
 };
 
@@ -247,7 +248,7 @@ var CSSDiff = {
 
 			// if there are any property diffs on this node, add them to the node diffs
 			if (prop_diffs.length > 0) {
-				node_diffs.push(new CSSDiffResult(doc1_els[i], prop_diffs));
+				node_diffs.push(new CSSDiffResult(doc1_els[i], doc2_els[i], prop_diffs));
 			}
 
 			// clear diff list for next node
