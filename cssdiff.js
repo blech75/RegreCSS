@@ -78,6 +78,14 @@ CSSPropertyDiffResult.prototype.toHTML = function() {
 };
 
 
+var CSSDocumentDiffResult = function(node_diffs, node_tally_skipped) {
+	this.node_diffs = node_diffs;
+	this.skipped = node_tally_skipped;
+
+	this.elapsed_time = null;
+};
+
+
 var CSSDiff = {
 	// refs to the IFRAMEs that hold the documents to compare
 	doc1 : null,
@@ -100,6 +108,9 @@ var CSSDiff = {
 	doc1_loaded_at : null,
 	doc2_loaded_at : null,
 	diff_completed_at : null,
+	
+	// stores the results, allowing us to access them from outside the object
+	results : null,
 
 	// use this regex to ignore certain CSS properties
 	// TODO:
@@ -163,13 +174,13 @@ var CSSDiff = {
 		}
 
 		// do the dirty work
-		var results = this.diffNodes(doc1, doc1_els, doc2, doc2_els);
+		this.results = this.diffNodes(doc1, doc1_els, doc2, doc2_els);
 
 		// benchmarking
 		var TIME_END = new Date();
 
 		// store the elapsed time on the results object for reporting
-		results.elapsed_time = TIME_END - TIME_START;
+		this.results.elapsed_time = TIME_END - TIME_START;
 
 		// signal we're done so phantomjs can exit cleanly
 		this.diff_completed_at = TIME_END;
@@ -179,7 +190,7 @@ var CSSDiff = {
 		this.last_diff_started_at = null;
 
 		// show how we did
-		this.displayDiffResults(results);
+		this.displayDiffResults();
 	},
 
 	// takes an two arrays of nodes and compares them
@@ -255,11 +266,7 @@ var CSSDiff = {
 			prop_diffs = [];
 		}
 
-		// return an object that will then be passed over to displayDiffResults()
-		return {
-			node_diffs : node_diffs,
-			skipped : node_tally_skipped
-		};
+		return new CSSDocumentDiffResult(node_diffs, node_tally_skipped);
   },
 
 	// allow for URLs to be passed in via query string, which allows for 
@@ -334,13 +341,22 @@ var CSSDiff = {
 	},
 
   // displays the diff results by updating the document
-	displayDiffResults : function(results) {
+	displayDiffResults : function() {
+		// save some typing
+		var results = this.results;
+
 		// console.log everything for right now
 		console.log("CSS Diff completed in " + results.elapsed_time + "ms. " + results.node_diffs.length + " node(s) differ, " + results.skipped + " node(s) skipped.");
 
 		// iterate over node_diffs, generating the HTML for each
-		var results_html = _.map(results.node_diffs, function(r) {
-			return this.displayNodeDiffResult(r);
+		var results_html = _.map(results.node_diffs, function(r, index) {
+			// the 'data-diff-index' attr allows us to associate the displayed diff 
+			// to the appropriate nodes in the source documents because it's the index of the 
+			return [
+				'<div class="node-diff" data-diff-index="' + index + '">',
+				this.displayNodeDiffResult(r),
+				'</div>'
+			].join("\n");
 		}, this).join("\n");
 
 		// shove it into the doc
@@ -447,6 +463,38 @@ jQuery(document).ready(function($){
 	// different event data.
 	$('#doc1_load').bind('click', { node_id: 'doc1' }, loadDocClickHandler);
 	$('#doc2_load').bind('click', { node_id: 'doc2' }, loadDocClickHandler);
+
+
+	function diffItemHighlightHandler(e) {
+		// get the actual diff result obj based on which .node-diff we're over
+		// REVIEWME: this may need to be refactored. not sure i love the ref to CSSDiff here. *shrug*
+		var diff_index = $(this).data("diff-index");
+		var diff = CSSDiff.results.node_diffs[diff_index];
+
+		// set the css value based on which event we're being called from
+		// 
+		// FIXME: ideally we wouldn't hardcode the css prop/value here. using 
+		// outline right now as it's not commonly used; likely needs to change, 
+		var css_prop = "outline";
+		var css_value = (e.type === "mouseover") ? "1px solid red" : "";
+
+		// for each node, scroll it into the viewport so the user can see it, and 
+		// highlight it in some way
+		// 
+		// FIXME: need to store the old value of CSS prop and set it back on 
+		// mouseout.
+		_.each([diff.node, diff.node_doc2], function(node) {
+			node.scrollIntoView();
+			$(node).css(css_prop, css_value);
+		});
+	}
+
+	// delegate the mouseover/out events for the .node-diffs to 
+	// #output-container. wouldn't want to manage all the individual events 
+	// handlers for each of the .node-diffs
+	$("#output-container").delegate(".node-diff", "mouseover", { }, diffItemHighlightHandler);
+	$("#output-container").delegate(".node-diff", "mouseout", { }, diffItemHighlightHandler);
+
 
 	// attempt to parse query params to allow (initial) use programmatically 
 	// via phantomjs.
