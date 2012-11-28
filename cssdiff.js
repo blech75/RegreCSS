@@ -339,7 +339,8 @@ var CSSDiff = {
 	// output the diff for a node. takes two args: the node, and an array of the 
 	// reported differences (as strings).
 	displayNodeDiffResult : function(node_diff) {
-		// console.log(node_diff.toString());
+		// TODO: make this conditional so it only outputs when running under phantomjs
+		console.log(node_diff.toString());
 		return node_diff.toHTML();
 	},
 
