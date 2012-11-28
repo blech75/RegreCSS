@@ -112,6 +112,9 @@ var CSSDiff = {
 	// stores the results, allowing us to access them from outside the object
 	results : null,
 
+	// store the currently clicked element in the output container
+	clicked_element : null,
+
 	// use this regex to ignore certain CSS properties
 	// TODO:
 	//  * confirm this list and/or ignore all vendor prefixes?
@@ -465,35 +468,126 @@ jQuery(document).ready(function($){
 	$('#doc2_load').bind('click', { node_id: 'doc2' }, loadDocClickHandler);
 
 
-	function diffItemHighlightHandler(e) {
-		// get the actual diff result obj based on which .node-diff we're over
-		// REVIEWME: this may need to be refactored. not sure i love the ref to CSSDiff here. *shrug*
-		var diff_index = $(this).data("diff-index");
-		var diff = CSSDiff.results.node_diffs[diff_index];
+	// =========================================================================
 
-		// set the css value based on which event we're being called from
-		// 
+	function highlightNode(node, css_prop, css_value) {
+		// scroll the node into view so the user can see it
+		node.scrollIntoView();
+
+		// store the old CSS value so we can return it to normal later
+		node.old_css_value = $(node).css(css_prop);
+
+		// highlight the node in some meaningful way
+		$(node).css(css_prop, css_value);
+	}
+
+	function unhighlightNode(node, css_prop) {
+		// return the css_prop of the node back to its original value (pre-highlight)
+		$(node).css(css_prop, node.old_css_value);
+	}
+
+
+	function getDiff(element) {
+		// get the actual diff result obj based on which .node-diff we're hovering over
+		// REVIEWME: this may need to be refactored. not sure i love the ref to CSSDiff here. *shrug*
+		return CSSDiff.results.node_diffs[$(element).data("diff-index")];
+	}
+
+	function diffItemClickHandler(e) {
 		// FIXME: ideally we wouldn't hardcode the css prop/value here. using 
 		// outline right now as it's not commonly used; likely needs to change, 
 		var css_prop = "outline";
-		var css_value = (e.type === "mouseover") ? "1px solid red" : "";
+		var css_value = "1px solid red";
+		
+		// get the diff for the clicked node
+		var diff = getDiff(this);
 
-		// for each node, scroll it into the viewport so the user can see it, and 
-		// highlight it in some way
-		// 
-		// FIXME: need to store the old value of CSS prop and set it back on 
-		// mouseout.
-		_.each([diff.node, diff.node_doc2], function(node) {
-			node.scrollIntoView();
-			$(node).css(css_prop, css_value);
-		});
+		// clicked an element when no others are highlighted
+		if (CSSDiff.clicked_element === null) {
+			// record that we clicked the node
+			CSSDiff.clicked_element = e.currentTarget;
+
+			// highlight the node
+			highlightNode(e.currentTarget, css_prop, css_value);
+			highlightNode(diff.node,       css_prop, css_value);
+			highlightNode(diff.node_doc2,  css_prop, css_value);
+
+		// clicked an element that we clicked before (this time, to unhighlight it)
+		} else if (CSSDiff.clicked_element == e.currentTarget) {
+			// unhighlight the node
+			unhighlightNode(e.currentTarget, css_prop);
+			unhighlightNode(diff.node,       css_prop);
+			unhighlightNode(diff.node_doc2,  css_prop);
+
+			// reset the clicked_element property
+			CSSDiff.clicked_element = null;
+
+		// clicked some other element
+		} else {
+			// grab the data about the old node
+			var old = CSSDiff.clicked_element;
+			var old_diff = getDiff(old);
+			
+			// unhighlight the old node
+			unhighlightNode(CSSDiff.clicked_element, css_prop);
+			unhighlightNode(old_diff.node,           css_prop);
+			unhighlightNode(old_diff.node_doc2,      css_prop);
+                                               
+			// record that we clicked the node
+			CSSDiff.clicked_element = e.currentTarget;
+
+			// highlight the node
+			highlightNode(CSSDiff.clicked_element, css_prop, css_value);
+			highlightNode(diff.node,               css_prop, css_value);
+			highlightNode(diff.node_doc2,          css_prop, css_value);
+		}
+
+		// console.log("CSSDiff.clicked_element = " + $(CSSDiff.clicked_element).data('diff-index'));
+	}
+
+	function diffItemHighlightHandler(e) {
+		// FIXME: ideally we wouldn't hardcode the css prop/value here. using 
+		// outline right now as it's not commonly used; likely needs to change, 
+		var css_prop  = "outline";
+		var css_value = "1px solid orange";
+
+		// bailing if the currenly highlighted element is the one we're hovering 
+		// over. we don't want to apply multiple styles to the element (yet).
+		if (
+			(e.currentTarget === CSSDiff.clicked_element) || 
+			($(e.currentTarget).css(css_prop) === css_value) 
+		) {
+			console.log($(e.currentTarget).css(css_prop));
+			return;
+		}
+		
+
+		// get the diff for the hovered node
+		var diff = getDiff(this);
+
+		if ( (e.type === "mouseleave") ) {
+			unhighlightNode(diff.node,      css_prop);
+			unhighlightNode(diff.node_doc2, css_prop);
+
+		} else if (e.type === "mouseenter") {
+			highlightNode(diff.node,      css_prop, css_value);
+			highlightNode(diff.node_doc2, css_prop, css_value);
+
+		} else {
+			console.log("something else is going on...");
+		}
+
 	}
 
 	// delegate the mouseover/out events for the .node-diffs to 
 	// #output-container. wouldn't want to manage all the individual events 
 	// handlers for each of the .node-diffs
-	$("#output-container").delegate(".node-diff", "mouseover", { }, diffItemHighlightHandler);
-	$("#output-container").delegate(".node-diff", "mouseout", { }, diffItemHighlightHandler);
+	$("#output-container").delegate(".node-diff", "mouseenter", { }, diffItemHighlightHandler);
+	$("#output-container").delegate(".node-diff", "mouseleave", { }, diffItemHighlightHandler);
+	// $("#output-container").delegate(".node-diff", "click",     { }, diffItemClickHandler);
+
+
+	// =========================================================================
 
 
 	// attempt to parse query params to allow (initial) use programmatically 
