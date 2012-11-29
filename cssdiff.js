@@ -18,7 +18,7 @@
 function generateNodeSignature(n) {
 	return n.nodeName + 
 		((n.id != "") ? "#" + n.id : "") + 
-		((n.className != "") ? "." + n.className.replace(" ", ".") : "");
+		((n.className != "") ? "." + n.className.replace(/ /g, ".") : "");
 }
 
 // helper function to return the path to the node (from <html> on down).
