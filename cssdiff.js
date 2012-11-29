@@ -22,10 +22,10 @@ function generateNodeSignature(n) {
 }
 
 // helper function to return the path to the node (from <html> on down).
-function getNodeAncestors(n) {
+function generateNodeAncestorPath(n) {
 	return jQuery(n).parentsUntil('html').map(function() { 
 		return generateNodeSignature(this); 
-	}).get().reverse().join(" > ");
+	}).get().reverse().join(" > ") + generateNodeSignature(n);
 }
 
 
@@ -37,11 +37,8 @@ var CSSDiffResult = function(doc1_node, doc2_node, diffs) {
 
 // allow this to be easily printed out in the console (plain text)
 CSSDiffResult.prototype.toString = function(){
-	var node_info = generateNodeSignature(this.node);
-	var path_info = getNodeAncestors(this.node);
-
 	return [
-		path_info + " > " + node_info,
+		generateNodeAncestorPath(this.node),
 		this.diffs.length + " property differences:",
 		this.diffs.join("\n")
 	].join("\n");
@@ -51,12 +48,9 @@ CSSDiffResult.prototype.toString = function(){
 // intended for outputting into the DOM for an interactive UI, though i 
 // suppose it could be used for generating a static report, too.
 CSSDiffResult.prototype.toHTML = function(){
-	var node_info = generateNodeSignature(this.node);
-	var path_info = getNodeAncestors(this.node);
-
 	// generate the markup for the node and its property diffs
 	return [
-		"<h3>" + path_info + " > " + node_info + "<\/h3>",
+		"<h3>" + generateNodeAncestorPath(this.node) + "<\/h3>",
 		"<p>" + this.diffs.length + " property differences:" + "<\/p>",
 		"<ul>",
 		_.map(this.diffs, function(d) { return d.toHTML(); }).join("\n"),
