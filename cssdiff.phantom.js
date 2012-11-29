@@ -10,7 +10,7 @@ if ( system.args.length != 3 ) {
 }
 
 // the URL where the tool lives
-var CSSDIFF_BASE_URL = "http://personal.local/cssdiff/cssdiff.html";
+var CSSDIFF_BASE_URL = "http://localhost/cssdiff/cssdiff.html";
 
 // read the URLs from the command line
 var urls = Array.prototype.slice.call(system.args, 1);
