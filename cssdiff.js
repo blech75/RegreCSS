@@ -8,9 +8,6 @@
 // report that the user can interact with, highlighting elements that differ, 
 // etc.
 
-// TODO: add pushState support that will update the browser URL when you run 
-// the diff, allowing you to copy/paste the URL around.
-
 // ---------------------------------------------------------------------------
 
 // helper function to build up a representaton of the node name + class/ID
