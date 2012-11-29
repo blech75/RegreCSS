@@ -84,9 +84,12 @@ CSSPropertyDiffResult.prototype.toHTML = function() {
 };
 
 
-var CSSDocumentDiffResult = function(node_diffs, node_tally_skipped) {
+var CSSDocumentDiffResult = function(node_diffs, stats) {
 	this.node_diffs = node_diffs;
-	this.skipped = node_tally_skipped;
+	
+	this.compared = stats.compared;
+	this.skipped  = stats.skipped;
+	this.ignored  = stats.ignored;
 
 	this.elapsed_time = null;
 };
@@ -125,8 +128,9 @@ var CSSDiff = {
 	// TODO:
 	//  * confirm this list and/or ignore all vendor prefixes?
 	//  * make this configurable via the UI;
-	IGNORE_REGEX : /^-(webkit|ms|moz|o)/,
-	URL_REGEX : /url\([^)]+\)/,
+	PROP_IGNORE_REGEX : /^-(webkit|ms|moz|o)/,
+	TAG_IGNORE_REGEX  : /^(script)$/i,
+	URL_REGEX         : /url\([^)]+\)/,
 
 	// the DOM node which contains the output of the diff engine
 	output_el : null,
@@ -231,7 +235,7 @@ var CSSDiff = {
 		var prop_diffs = [];
 
 		// some rudimwntary counters that store data for summary later.
-		var node_tally_skipped = 0;
+		var node_tally_skipped = node_tally_compared = node_tally_ignored = 0;
 
 		// loop over all of the elements in the first doc (and hope they're the same in the second doc!)
 		for (var i=0; i < doc1_els.length; i++) {
@@ -239,6 +243,14 @@ var CSSDiff = {
 			if (doc1_els[i] && !doc2_els[i]) {
 				console.log("ERROR: DOM node from doc1 (" + doc1_els[i].tagName + ") does not exist in doc2. Ignoring.");
 				node_tally_skipped++;
+				continue;
+			}
+
+			console.log("comparing: " + generateNodeAncestorPath(doc1_els[i]));
+
+			if (doc1_els[i].tagName.match(this.TAG_IGNORE_REGEX)) {
+				console.log("WARNING: encountered a script tag that should not be compared visual properties.");
+				node_tally_ignored++;
 				continue;
 			}
 
@@ -253,7 +265,7 @@ var CSSDiff = {
 			// iterate over the list of CSS properties
 			for (var j=0; j < css_props.length; j++) {
 				// bail out if the property matches the ignore regex
-				if (this.IGNORE_REGEX.test(css_props[j])) { continue; }
+				if (this.PROP_IGNORE_REGEX.test(css_props[j])) { continue; }
 
 				// if the value of the property does not match across documents
 				if (el1_style[css_props[j]] != el2_style[css_props[j]]) {
@@ -289,11 +301,19 @@ var CSSDiff = {
 				node_diffs.push(new CSSDiffResult(doc1_els[i], doc2_els[i], prop_diffs));
 			}
 
+			node_tally_compared++;
+
 			// clear diff list for next node
 			prop_diffs = [];
 		}
 
-		return new CSSDocumentDiffResult(node_diffs, node_tally_skipped);
+		var stats = {
+			compared : node_tally_compared, 
+			skipped  : node_tally_skipped,
+			ignored  : node_tally_ignored
+		};
+
+		return new CSSDocumentDiffResult(node_diffs, stats);
   },
 
 	// allow for URLs to be passed in via query string, which allows for 
@@ -375,10 +395,18 @@ var CSSDiff = {
 		var results = this.results;
 
 		// console.log everything for right now
-		console.log("CSS Diff completed in " + results.elapsed_time + "ms. " + results.node_diffs.length + " node(s) differ, " + results.skipped + " node(s) skipped.");
+		var stats = "CSS Diff completed in " + results.elapsed_time + "ms. " + 
+			"Node stats: " + 
+			results.compared + " compared, " + 
+			results.node_diffs.length + " differ, " + 
+			results.skipped + " skipped.";
+
+		console.log(stats);
+
+		var results_html = "<p>" + stats + "<\/p>";
 
 		// iterate over node_diffs, generating the HTML for each
-		var results_html = _.map(results.node_diffs, function(r, index) {
+		results_html += _.map(results.node_diffs, function(r, index) {
 			// the 'data-diff-index' attr allows us to associate the displayed diff 
 			// to the appropriate nodes in the source documents because it's the index of the 
 			return [
