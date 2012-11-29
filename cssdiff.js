@@ -13,6 +13,14 @@
 
 // ---------------------------------------------------------------------------
 
+// helper function to build up a representaton of the node name + class/ID
+// FIXME: i assume this breaks with multiple classes. needs testing
+function generateNodeSignature(n){
+	return n.nodeName + 
+		((n.id != "") ? "#" + n.id : "") + 
+		((n.className != "") ? "." + n.className : "");
+}
+
 var CSSDiffResult = function(doc1_node, doc2_node, diffs) {
 	this.node = doc1_node;
 	this.node_doc2 = doc2_node;
@@ -21,33 +29,31 @@ var CSSDiffResult = function(doc1_node, doc2_node, diffs) {
 
 // allow this to be easily printed out
 CSSDiffResult.prototype.toString = function(){
-	// build up a representaton of the node name + class/ID
-	var node_info = this.node.nodeName + 
-		((this.node.id != "") ? "#" + this.node.id : "") + 
-		((this.node.className != "") ? "." + this.node.className : "");
+	var node_info = generateNodeSignature(this.node);
 
 	// grab the path to the node
 	var path_info = jQuery(this.node).parentsUntil('html').map(function() { 
-		return this.tagName; 
-	}).get().join(" < ");
+		return generateNodeSignature(this); 
+	}).get().reverse().join(" > ");
 
-	return node_info + " < " + path_info + "\n" + this.diffs.join("\n");
+	return [
+		path_info + " > " + node_info,
+		this.diffs.length + " property differences:",
+		this.diffs.join("\n")
+	].join("\n");
 };
 
 CSSDiffResult.prototype.toHTML = function(){
-	// build up a representaton of the node name + class/ID
-	var node_info = this.node.nodeName + 
-		((this.node.id != "") ? "#" + this.node.id : "") + 
-		((this.node.className != "") ? "." + this.node.className : "");
+	var node_info = generateNodeSignature(this.node);
 
 	// grab the path to the node
 	var path_info = jQuery(this.node).parentsUntil('html').map(function() { 
-		return this.tagName; 
-	}).get().join(" < ");
+		return generateNodeSignature(this); 
+	}).get().reverse().join(" > ");
 
 	// generate the markup for the node and its property diffs
 	return [
-		"<h3>" + node_info + " < " + path_info + "<\/h3>",
+		"<h3>" + path_info + " > " + node_info + "<\/h3>",
 		"<p>" + this.diffs.length + " property differences:" + "<\/p>",
 		"<ul>",
 		_.map(this.diffs, function(d) { return d.toHTML(); }).join("\n"),
@@ -360,6 +366,7 @@ var CSSDiff = {
 	displayNodeDiffResult : function(node_diff) {
 		// TODO: make this conditional so it only outputs when running under phantomjs
 		console.log(node_diff.toString());
+
 		return node_diff.toHTML();
 	},
 
