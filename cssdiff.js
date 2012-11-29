@@ -1,12 +1,16 @@
-// KNOWN ISSUE: the computed style is determined when the user clicks 
-// 'Run CSS Diff', which may confusingly report properties of elements which 
-// are animated automatically (on page load) as being different. maybe we 
-// should allow users to specify selectors to ignore and/or the properties to 
-// ignore. need to think about this.
-
-// TODO: make this more interactive when run in the browser. output a dynamic 
-// report that the user can interact with, highlighting elements that differ, 
-// etc.
+// KNOWN ISSUES / LIMITATIONS
+// 
+// the computed style is determined when the user clicks 'Run CSS Diff', 
+// which may confusingly report properties of elements which are animated 
+// automatically (on page load) as being different. maybe we should allow 
+// users to specify selectors to ignore and/or the properties to ignore. need 
+// to think about this.
+// 
+// element states (:hover) are not accounted for when comparing.
+// 
+// significantly different DOM hierarchies will probbaly yield usless diffs. 
+// working to mitigate this for normal DOM changes. right now we need 
+// identical DOM hierarchies to produce useful results.
 
 // ---------------------------------------------------------------------------
 
