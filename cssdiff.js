@@ -157,8 +157,8 @@ var CSSDiff = {
 		var TIME_START = new Date();
 
 		// pull out the URLs of the documents for later use
-		this.doc1_url = doc1.baseURI;
-		this.doc2_url = doc2.baseURI;
+		this.doc1_url = doc1.src;
+		this.doc2_url = doc2.src;
 
 		// a bit of a sanity check here. let's just deal with IFRAMEs for now, 
 		// mmmmmkay?
