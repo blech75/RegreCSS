@@ -181,6 +181,11 @@ var CSSDiff = {
 		}
 
 		// grab all of the elements in the IFRAME's DOM
+		// 
+		// NOTE: this really needs to be handled differently, traversing the nodes 
+		// more intelligently (in a tree) rather than a flattened list of the DOM 
+		// nodes. that will allow us to more sensibly compare documents trees that 
+		// are not entirely identical.
 		var doc1_els = _.toArray(doc1.contentDocument.body.getElementsByTagName('*'));
 		var doc2_els = _.toArray(doc2.contentDocument.body.getElementsByTagName('*'));
 
