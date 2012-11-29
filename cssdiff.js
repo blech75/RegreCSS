@@ -12,11 +12,19 @@
 
 // helper function to build up a representaton of the node name + class/ID
 // FIXME: i assume this breaks with multiple classes. needs testing
-function generateNodeSignature(n){
+function generateNodeSignature(n) {
 	return n.nodeName + 
 		((n.id != "") ? "#" + n.id : "") + 
 		((n.className != "") ? "." + n.className : "");
 }
+
+// helper function to return the path to the node (from <html> on down).
+function getNodeAncestors(n) {
+	return jQuery(n).parentsUntil('html').map(function() { 
+		return generateNodeSignature(this); 
+	}).get().reverse().join(" > ");
+}
+
 
 var CSSDiffResult = function(doc1_node, doc2_node, diffs) {
 	this.node = doc1_node;
@@ -24,14 +32,10 @@ var CSSDiffResult = function(doc1_node, doc2_node, diffs) {
 	this.diffs = diffs;	
 };
 
-// allow this to be easily printed out
+// allow this to be easily printed out in the console (plain text)
 CSSDiffResult.prototype.toString = function(){
 	var node_info = generateNodeSignature(this.node);
-
-	// grab the path to the node
-	var path_info = jQuery(this.node).parentsUntil('html').map(function() { 
-		return generateNodeSignature(this); 
-	}).get().reverse().join(" > ");
+	var path_info = getNodeAncestors(this.node);
 
 	return [
 		path_info + " > " + node_info,
@@ -40,13 +44,12 @@ CSSDiffResult.prototype.toString = function(){
 	].join("\n");
 };
 
+// slightly richer formatting than toString.
+// intended for outputting into the DOM for an interactive UI, though i 
+// suppose it could be used for generating a static report, too.
 CSSDiffResult.prototype.toHTML = function(){
 	var node_info = generateNodeSignature(this.node);
-
-	// grab the path to the node
-	var path_info = jQuery(this.node).parentsUntil('html').map(function() { 
-		return generateNodeSignature(this); 
-	}).get().reverse().join(" > ");
+	var path_info = getNodeAncestors(this.node);
 
 	// generate the markup for the node and its property diffs
 	return [
@@ -54,7 +57,6 @@ CSSDiffResult.prototype.toHTML = function(){
 		"<p>" + this.diffs.length + " property differences:" + "<\/p>",
 		"<ul>",
 		_.map(this.diffs, function(d) { return d.toHTML(); }).join("\n"),
-		// this.diffs.join("\n"),
 		"</ul>"
 	].join("\n");
 };
@@ -66,13 +68,16 @@ var CSSPropertyDiffResult = function(prop, doc1_value, doc2_value) {
 	this.doc2_value = doc2_value;
 };
 
-// allow this to be easily printed out
+// allow this to be easily printed out in the console (plain text)
 CSSPropertyDiffResult.prototype.toString = function() {
 	return " » " + this.prop + 
 		" : " + this.doc1_value + 
 		" vs. " + this.doc2_value;
 };
 
+// slightly richer formatting than toString.
+// intended for outputting into the DOM for an interactive UI, though i 
+// suppose it could be used for generating a static report, too.
 CSSPropertyDiffResult.prototype.toHTML = function() {
 	return "<li>" +
 		this.prop + 
