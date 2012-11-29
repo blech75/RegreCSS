@@ -47,7 +47,8 @@ CSSDiffResult.prototype.toHTML = function(){
 
 	// generate the markup for the node and its property diffs
 	return [
-		"<h3>" + node_info + " < " + path_info + " (" + this.diffs.length + ")" + "<\/h3>",
+		"<h3>" + node_info + " < " + path_info + "<\/h3>",
+		"<p>" + this.diffs.length + " property differences:" + "<\/p>",
 		"<ul>",
 		_.map(this.diffs, function(d) { return d.toHTML(); }).join("\n"),
 		// this.diffs.join("\n"),
