@@ -25,7 +25,7 @@ function generateNodeSignature(n) {
 function generateNodeAncestorPath(n) {
 	return jQuery(n).parentsUntil('html').map(function() { 
 		return generateNodeSignature(this); 
-	}).get().reverse().join(" > ") + generateNodeSignature(n);
+	}).get().reverse().join(" > ") + " > " + generateNodeSignature(n);
 }
 
 
