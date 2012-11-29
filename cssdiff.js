@@ -249,7 +249,7 @@ var CSSDiff = {
 			console.log("comparing: " + generateNodeAncestorPath(doc1_els[i]));
 
 			if (doc1_els[i].tagName.match(this.TAG_IGNORE_REGEX)) {
-				console.log("WARNING: encountered a script tag that should not be compared visual properties.");
+				console.log("WARNING: encountered a script tag whose; ignoring");
 				node_tally_ignored++;
 				continue;
 			}
