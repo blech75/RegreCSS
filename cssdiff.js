@@ -15,11 +15,10 @@
 // ---------------------------------------------------------------------------
 
 // helper function to build up a representaton of the node name + class/ID
-// FIXME: i assume this breaks with multiple classes. needs testing
 function generateNodeSignature(n) {
 	return n.nodeName + 
 		((n.id != "") ? "#" + n.id : "") + 
-		((n.className != "") ? "." + n.className : "");
+		((n.className != "") ? "." + n.className.replace(" ", ".") : "");
 }
 
 // helper function to return the path to the node (from <html> on down).
