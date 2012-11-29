@@ -143,7 +143,20 @@ var CSSDiff = {
 
 	// updates the browser's URL bar so that you can bookmark the diff
 	updateURLBar : function() {
-		// TODO: pushState magic here
+		// placeholder; for future use by popstate.
+		var state_obj = {
+			doc1_url : this.doc1.src,
+			doc2_url : this.doc2.src
+		};
+
+		// generate the new URL. this should match the URL we parse on load of 
+		// the page. (see loadDocsFromQueryString)
+		var new_url = window.location.pathname + 
+			"?" + "url1=" + encodeURIComponent(this.doc1.src) + 
+			"&" + "url2=" + encodeURIComponent(this.doc2.src);
+
+		// push the state
+		history.pushState(state_obj, '', new_url);
 	},
 
 	// diffDocuments optionally takes two arguments, which are IFRAME node 
