@@ -14,7 +14,9 @@ var CSSDIFF_BASE_URL = "http://localhost/cssdiff/cssdiff.html";
 
 // read the URLs from the command line
 var urls = Array.prototype.slice.call(system.args, 1);
-console.log("Attempting to compare <" + urls[0] + "> to <" + urls[1] + "> ...");
+console.log("Attempting to compare the following two URLs:");
+console.log(" * " + urls[0]);
+console.log(" * " + urls[1]);
 
 // construct the URL to the diff tool, passing in the params to auto-execute on load
 var cssdiff_page_url = CSSDIFF_BASE_URL + 
