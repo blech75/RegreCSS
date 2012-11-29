@@ -74,7 +74,7 @@ function waitFor(testFx, onReady, timeOutMillis) {
                 }
             }
         }, 100); //< repeat check every 100ms
-};
+}
 
 // ===========================================================================
 
