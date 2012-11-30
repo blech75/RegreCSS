@@ -81,27 +81,28 @@ function waitFor(testFx, onReady, timeOutMillis) {
 // ===========================================================================
 
 
+// load the page
 page.open(cssdiff_page_url, function(status){
-	if (status == 'success') {
-
-		waitFor(
-			function(){
-				// this check will test for the diff finishing
-				return page.evaluate(function(){
-					return (true && (CSSDiff.diff_completed_at > CSSDiff.last_diff_started_at));
-				});
-			},
-			// not much to do here; just exit
-			function(){
-				page.evaluate(function(){
-					// run this code on completion
-				});
-				phantom.exit();
-			}
-		);
-
-	} else {
+	// bail out if it failed
+	if (status !== 'success') {
 		console.log('Error: Failed to load page.');
 	}
+
+	// run a loop while we wait for CSSDiff to complete
+	waitFor(
+		// condition to test
+		function(){
+			// this check will test for the diff finishing
+			return page.evaluate(function(){
+				return (true && (CSSDiff.diff_completed_at > CSSDiff.last_diff_started_at));
+			});
+		},
+
+		// what to do onready
+		function(){
+			// not much to do here right now; just exit
+			phantom.exit();
+		}
+	);
 
 });
