@@ -1,6 +1,6 @@
 // KNOWN ISSUES / LIMITATIONS
 // 
-// the computed style is determined when the user clicks 'Run CSS Diff', 
+// the computed style is determined when the user clicks 'RegreCSS!', 
 // which may confusingly report properties of elements which are animated 
 // automatically (on page load) as being different. maybe we should allow 
 // users to specify selectors to ignore and/or the properties to ignore. need 
@@ -95,7 +95,7 @@ var CSSDocumentDiffResult = function(node_diffs, stats) {
 };
 
 
-var CSSDiff = {
+var RegreCSS = {
 	// refs to the IFRAMEs that hold the documents to compare
 	doc1 : null,
 	doc2 : null,
@@ -395,7 +395,7 @@ var CSSDiff = {
 		var results = this.results;
 
 		// console.log everything for right now
-		var stats = "CSS Diff completed in " + results.elapsed_time + "ms. " + 
+		var stats = "RegreCSS completed in " + results.elapsed_time + "ms. " + 
 			"Node stats: " + 
 			results.compared + " compared, " + 
 			results.node_diffs.length + " differ, " + 
@@ -422,7 +422,7 @@ var CSSDiff = {
 
 	// utlility function that returns an array with two items: strings that 
 	// represent the URL "base" of the docs. takes two URLs (filenames right now).
-	// TODO: rip this out of the CSSDiff object
+	// TODO: rip this out of the RegreCSS object
 	determineCommonPathParts : function (path1, path2) {
 		var path1_parts = path1.split("/");
 		var path2_parts = path2.split("/");
@@ -456,16 +456,16 @@ var CSSDiff = {
 jQuery(document).ready(function($){
 
 	// run the init script
-	CSSDiff.init();
+	RegreCSS.init();
 
-	// TODO: move these event handlers on to the CSSDiff object. need to figure 
+	// TODO: move these event handlers on to the RegreCSS object. need to figure 
 	// out how function binding works w/ jQuery. (I'm used to Prototype's 
 	// .bind() method )
 
 	// event handler intended to be bound to the "load document" button. takes
 	// one argument: a DOM event.
 	function loadDocClickHandler(event) {
-		CSSDiff.loadDoc(
+		RegreCSS.loadDoc(
 		  document.getElementById(event.data.node_id + "_url").value, 
 		  document.getElementById(event.data.node_id)
 		);
@@ -476,16 +476,16 @@ jQuery(document).ready(function($){
 	// to determine if we should run diffDocuments() (for automatic execution when 
 	// initiated via query string).
 	function iframeLoadHandler(event) {
-		CSSDiff[event.srcElement.id + '_loaded_at'] = new Date();
-	//	console.log('IFRAME ' + event.srcElement.id + ' loaded at ' + CSSDiff[event.srcElement.id + '_loaded']);
+		RegreCSS[event.srcElement.id + '_loaded_at'] = new Date();
+	//	console.log('IFRAME ' + event.srcElement.id + ' loaded at ' + RegreCSS[event.srcElement.id + '_loaded']);
 
 		// check to see if we can run diffDocuments()
-		if ( CSSDiff.last_diff_started_at && 
-				(CSSDiff.doc1_loaded_at > CSSDiff.last_diff_started_at) && 
-				(CSSDiff.doc2_loaded_at > CSSDiff.last_diff_started_at)
+		if ( RegreCSS.last_diff_started_at && 
+				(RegreCSS.doc1_loaded_at > RegreCSS.last_diff_started_at) && 
+				(RegreCSS.doc2_loaded_at > RegreCSS.last_diff_started_at)
 		) {
-			// console.log("both docs loaded; executing CSSDiff.run() now");
-			CSSDiff.run();
+			// console.log("both docs loaded; executing RegreCSS.run() now");
+			RegreCSS.run();
 
 		} else {
       console.log("both docs not loaded yet; holding off on diffDocuments()");
@@ -493,16 +493,16 @@ jQuery(document).ready(function($){
 	}
 
 
-	// event handler intended to be called when the "run css diff" button is 
+	// event handler intended to be called when the "RegreCSS!" button is 
 	// clicked.
 	function diffCssClickHandler(event){
 		// record when we click the button so we can make better decisions (read:
 		// automate) things later.
-		CSSDiff.last_diff_started_at = new Date();
+		RegreCSS.last_diff_started_at = new Date();
 
 		// TODO: how do we determine if both documents are ready to be checked? 
 		// (e.g. loaded w/o errors)
-		CSSDiff.run();
+		RegreCSS.run();
 	}
 
 	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -543,8 +543,8 @@ jQuery(document).ready(function($){
 
 	function getDiff(element) {
 		// get the actual diff result obj based on which .node-diff we're hovering over
-		// REVIEWME: this may need to be refactored. not sure i love the ref to CSSDiff here. *shrug*
-		return CSSDiff.results.node_diffs[$(element).data("diff-index")];
+		// REVIEWME: this may need to be refactored. not sure i love the ref to RegreCSS here. *shrug*
+		return RegreCSS.results.node_diffs[$(element).data("diff-index")];
 	}
 
 	function diffItemClickHandler(e) {
@@ -557,9 +557,9 @@ jQuery(document).ready(function($){
 		var diff = getDiff(this);
 
 		// clicked an element when no others are highlighted
-		if (CSSDiff.clicked_element === null) {
+		if (RegreCSS.clicked_element === null) {
 			// record that we clicked the node
-			CSSDiff.clicked_element = e.currentTarget;
+			RegreCSS.clicked_element = e.currentTarget;
 
 			// highlight the node
 			highlightNode(e.currentTarget, css_prop, css_value);
@@ -567,36 +567,36 @@ jQuery(document).ready(function($){
 			highlightNode(diff.node_doc2,  css_prop, css_value);
 
 		// clicked an element that we clicked before (this time, to unhighlight it)
-		} else if (CSSDiff.clicked_element == e.currentTarget) {
+		} else if (RegreCSS.clicked_element == e.currentTarget) {
 			// unhighlight the node
 			unhighlightNode(e.currentTarget, css_prop);
 			unhighlightNode(diff.node,       css_prop);
 			unhighlightNode(diff.node_doc2,  css_prop);
 
 			// reset the clicked_element property
-			CSSDiff.clicked_element = null;
+			RegreCSS.clicked_element = null;
 
 		// clicked some other element
 		} else {
 			// grab the data about the old node
-			var old = CSSDiff.clicked_element;
+			var old = RegreCSS.clicked_element;
 			var old_diff = getDiff(old);
 			
 			// unhighlight the old node
-			unhighlightNode(CSSDiff.clicked_element, css_prop);
+			unhighlightNode(RegreCSS.clicked_element, css_prop);
 			unhighlightNode(old_diff.node,           css_prop);
 			unhighlightNode(old_diff.node_doc2,      css_prop);
                                                
 			// record that we clicked the node
-			CSSDiff.clicked_element = e.currentTarget;
+			RegreCSS.clicked_element = e.currentTarget;
 
 			// highlight the node
-			highlightNode(CSSDiff.clicked_element, css_prop, css_value);
+			highlightNode(RegreCSS.clicked_element, css_prop, css_value);
 			highlightNode(diff.node,               css_prop, css_value);
 			highlightNode(diff.node_doc2,          css_prop, css_value);
 		}
 
-		// console.log("CSSDiff.clicked_element = " + $(CSSDiff.clicked_element).data('diff-index'));
+		// console.log("RegreCSS.clicked_element = " + $(RegreCSS.clicked_element).data('diff-index'));
 	}
 
 	function diffItemHighlightHandler(e) {
@@ -608,7 +608,7 @@ jQuery(document).ready(function($){
 		// bailing if the currenly highlighted element is the one we're hovering 
 		// over. we don't want to apply multiple styles to the element (yet).
 		if (
-			(e.currentTarget === CSSDiff.clicked_element) || 
+			(e.currentTarget === RegreCSS.clicked_element) || 
 			($(e.currentTarget).css(css_prop) === css_value) 
 		) {
 			console.log($(e.currentTarget).css(css_prop));
@@ -649,6 +649,6 @@ jQuery(document).ready(function($){
 	// 
 	// TODO: figure out how to keep the page/environment up and run multiple 
 	// diffs.
-	CSSDiff.loadDocsFromQueryString(window.location.search);
+	RegreCSS.loadDocsFromQueryString(window.location.search);
 
 });

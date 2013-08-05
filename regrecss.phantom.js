@@ -10,7 +10,9 @@ if ( system.args.length != 3 ) {
 }
 
 // the URL where the tool lives
-var CSSDIFF_BASE_URL = "http://localhost/cssdiff/cssdiff.html";
+// TODO: pull REGRECSS_BASE_URL from system.env or use default below
+var REGRECSS_BASE_URL = "http://localhost/regrecss/regrecss.html";
+
 
 // read the URLs from the command line
 var urls = Array.prototype.slice.call(system.args, 1);
@@ -19,7 +21,7 @@ console.log(" * " + urls[0]);
 console.log(" * " + urls[1]);
 
 // construct the URL to the diff tool, passing in the params to auto-execute on load
-var cssdiff_page_url = CSSDIFF_BASE_URL + 
+var regrecss_page_url = REGRECSS_BASE_URL + 
 	"?url1=" + encodeURIComponent(urls[0]) + 
 	"&url2=" + encodeURIComponent(urls[1]);
 
@@ -82,19 +84,19 @@ function waitFor(testFx, onReady, timeOutMillis) {
 
 
 // load the page
-page.open(cssdiff_page_url, function(status){
+page.open(regrecss_page_url, function(status){
 	// bail out if it failed
 	if (status !== 'success') {
 		console.log('Error: Failed to load page.');
 	}
 
-	// run a loop while we wait for CSSDiff to complete
+	// run a loop while we wait for RegreCSS to complete
 	waitFor(
 		// condition to test
 		function(){
 			// this check will test for the diff finishing
 			return page.evaluate(function(){
-				return (true && (CSSDiff.diff_completed_at > CSSDiff.last_diff_started_at));
+				return (true && (RegreCSS.diff_completed_at > RegreCSS.last_diff_started_at));
 			});
 		},
 
