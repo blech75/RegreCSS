@@ -128,9 +128,9 @@ var RegreCSS = {
 	// TODO:
 	//  * confirm this list and/or ignore all vendor prefixes?
 	//  * make this configurable via the UI;
-	PROP_IGNORE_REGEX : /^-(webkit|ms|moz|o)/,
+	PROP_IGNORE_REGEX : /^-(webkit|ms|moz|o)/i,
 	TAG_IGNORE_REGEX  : /^(script)$/i,
-	URL_REGEX         : /url\([^)]+\)/,
+	URL_REGEX         : /url\([^)]+\)/i,
 
 	// the DOM node which contains the output of the diff engine
 	output_el : null,
