@@ -14,14 +14,13 @@
 	<style type="text/css" media="screen">
 		.embedded-doc { width: 100%; height: 600px; }
 		#output-container { margin-top: 3em; height: 600px; overflow: auto; }
+		.input-group { margin: 1em 0; }
 		.node-diff { cursor: pointer; }
 		.node-diff:hover { background: #EEE; }
 		.node-diff P,
 		.node-diff UL { margin: 0.5em 0; }
 		#action { text-align: center; }
-		INPUT { width: 200px; }
 		H2, H3 { margin-top: 0; margin-bottom: .5em; }
-		.clearFix { clear: both; }
 	</style>
 
 </head>
@@ -52,11 +51,15 @@
 				<div class="tab-pane active" id="tab-doc1">
 					<div id="doc1-wrapper" class="doc-wrapper">
 						<h2 class="hidden">Base Document</h2>
-						<div>
-							<label for="doc1_url">URL</label>
-							<input type="text" value="example-doc1.html" id="doc1_url" size="50" />
-							<button type="button" id="doc1_load" value="">Load</button>
-						</div>
+
+						<div class="input-group">
+							<label for="doc1_url" class="hidden">URL</label>
+							<input type="text" class="form-control" value="example-doc1.html" id="doc1_url" size="50">
+							<span class="input-group-btn">
+								<button class="btn btn-default" type="button" id="doc1_load">Load</button>
+							</span>
+						</div><!-- /input-group -->
+
 						<iframe src="blank.html" id="doc1" class="embedded-doc"></iframe>
 					</div>
 				</div>
@@ -64,11 +67,15 @@
 				<div class="tab-pane" id="tab-doc2">
 					<div id="doc2-wrapper" class="doc-wrapper">
 						<h2 class="hidden">Document to Compare</h2>
-						<div>
-							<label for="doc2_url">URL</label>
-							<input type="text" value="example-doc2.html" id="doc2_url" size="50" />
-							<button type="button" id="doc2_load" value="">Load</button>
-						</div>
+
+						<div class="input-group">
+							<label for="doc2_url" class="hidden">URL</label>
+							<input type="text" class="form-control" value="example-doc2.html" id="doc2_url" size="50">
+							<span class="input-group-btn">
+								<button class="btn btn-default" type="button" id="doc2_load">Load</button>
+							</span>
+						</div><!-- /input-group -->
+
 						<iframe src="blank.html" id="doc2" class="embedded-doc"></iframe>
 					</div>
 				</div>
