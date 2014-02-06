@@ -13,14 +13,16 @@
 	<link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.css" type="text/css" />
 	<style type="text/css" media="screen">
 		.embedded-doc { width: 100%; height: 600px; }
-		#output-container { margin-top: 3em; height: 600px; overflow: auto; }
+
+		/* the margin-top here is kind of a hack */
+		#action { margin-top: 42px; }
+		#output-container { margin-top: 16px; height: 600px; overflow: auto; }
+
 		.input-group { margin: 1em 0; }
 		.node-diff { cursor: pointer; }
 		.node-diff:hover { background: #EEE; }
 		.node-diff P,
 		.node-diff UL { margin: 0.5em 0; }
-		#action { text-align: center; }
-		H2, H3 { margin-top: 0; margin-bottom: .5em; }
 		IFRAME { border: 1px solid #CCC; }
 	</style>
 
@@ -86,13 +88,13 @@
 
 		<div class="col-md-4">
 
-			<div id="action" class="btn-group">
-				<button type="button" class="btn btn-default" id="diff-css" value="">RegreCSS!</button>
+			<div id="action">
+				<button type="button" class="btn btn-primary btn-lg btn-block" id="diff-css" value="">RegreCSS!</button>
 			</div>
 
 			<div id="output">
 				<h2 class="hidden">Output</h2>
-				<div id="output-container">
+				<div id="output-container" class="well">
 
 				</div>
 			</div>
