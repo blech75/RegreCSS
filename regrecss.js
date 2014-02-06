@@ -655,6 +655,7 @@ jQuery(document).ready(function($){
 
 jQuery(function(){
 	function setViewportWidth(){
+		// FIXME: validate/sanitize input, accommodate "auto" (empty), etc.
 		var width = parseInt($("#viewport_width").val());
 		$(RegreCSS.doc1).css('width', width + "px");
 		$(RegreCSS.doc2).css('width', width + "px");
