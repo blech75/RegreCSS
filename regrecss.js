@@ -652,3 +652,11 @@ jQuery(document).ready(function($){
 	RegreCSS.loadDocsFromQueryString(window.location.search);
 
 });
+
+
+jQuery(function(){
+  $('.nav-tabs a').click(function (e) {
+    e.preventDefault();
+    $(this).tab('show');
+  });
+});
