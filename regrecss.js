@@ -653,6 +653,17 @@ jQuery(document).ready(function($){
 
 });
 
+jQuery(function(){
+	function setViewportWidth(){
+		var width = parseInt($("#viewport_width").val());
+		$(RegreCSS.doc1).css('width', width + "px");
+		$(RegreCSS.doc2).css('width', width + "px");
+	}
+
+	$('#set_viewport_width').bind('click', setViewportWidth);
+
+});
+
 
 jQuery(function(){
   $('.nav-tabs a').click(function (e) {

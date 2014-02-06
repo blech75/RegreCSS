@@ -13,6 +13,7 @@
 	<link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.css" type="text/css" />
 	<style type="text/css" media="screen">
 		.embedded-doc { width: 100%; height: 600px; }
+		.doc-wrapper { overflow: hidden; }
 
 		/* the margin-top here is kind of a hack */
 		#action { margin-top: 42px; }
@@ -26,6 +27,8 @@
 		.node-diff P,
 		.node-diff UL { margin: 0.5em 0; }
 		IFRAME { border: 1px solid #CCC; }
+		
+		#viewport-group { position: absolute; top: 0; right: 15px; }
 	</style>
 
 </head>
@@ -46,6 +49,14 @@
 <div class="container-fluid">
 	<div class="row">
 		<div class="col-md-8">
+
+			<div class="form-inline" id="viewport-group">
+				<div class="form-group">
+					<label for="viewport_width" class="hidden">Viewport Width</label>
+					<input type="text" class="form-control input-sm" value="" id="viewport_width" size="4">
+				</div>
+				<button class="btn btn-default btn-sm" type="button" id="set_viewport_width">Set Viewport Width</button>
+			</div>
 
 			<ul class="nav nav-tabs">
 				<li class="active"><a href="#tab-doc1">Base Document</a></li>
