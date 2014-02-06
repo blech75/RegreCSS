@@ -476,8 +476,8 @@ jQuery(document).ready(function($){
 	// to determine if we should run diffDocuments() (for automatic execution when 
 	// initiated via query string).
 	function iframeLoadHandler(event) {
-		RegreCSS[event.srcElement.id + '_loaded_at'] = new Date();
-	//	console.log('IFRAME ' + event.srcElement.id + ' loaded at ' + RegreCSS[event.srcElement.id + '_loaded']);
+		RegreCSS[event.target.id + '_loaded_at'] = new Date();
+	//	console.log('IFRAME ' + event.target.id + ' loaded at ' + RegreCSS[event.target.id + '_loaded']);
 
 		// check to see if we can run diffDocuments()
 		if ( RegreCSS.last_diff_started_at && 
